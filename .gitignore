@@ -1,0 +1,15 @@
+build
+.phpunit*
+*.log
+.env
+composer.phar
+composer.lock
+.DS_Store
+Thumbs.db
+/.idea
+/.vscode
+/.qoder
+/vendor
+/.settings
+/.buildpath
+/.project

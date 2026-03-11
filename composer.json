@@ -1,0 +1,30 @@
+{
+  "name": "cdyun/thinkphp-admin",
+  "description": "Thinkphp Admin",
+  "license": "MIT",
+  "keywords": [
+    "php",
+    "admin",
+    "cdyun"
+  ],
+  "authors": [
+    {
+      "name": "cdyun",
+      "email": "121625706@qq.com",
+      "role": "Developer"
+    }
+  ],
+  "require": {
+    "php": "^8.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "app\\": "src/"
+    }
+  },
+  "extra": {
+      "think": {
+          "app":"src/admin"
+      }
+  }
+}
