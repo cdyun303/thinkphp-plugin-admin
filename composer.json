@@ -23,6 +23,12 @@
       "app\\admin\\": "src"
     }
   },
+  "config": {
+    "sort-packages": true,
+    "allow-plugins": {
+      "cdyun/thinkphp-installer": true
+    }
+  },
   "extra": {
     "config": {
       "type": "module",
