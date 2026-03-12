@@ -37,10 +37,7 @@
       "description": "后台基础管理模块，系统账号及安全配置管理。"
     },
     "plugin": {
-      "copy": {
-        "src": "!app/admin"
-      },
-      "clear": true
+      "src": "app/admin"
     }
   }
 }
