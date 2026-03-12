@@ -1,10 +1,11 @@
 {
-  "name": "cdyun/thinkphp-admin",
-  "description": "Thinkphp Admin",
+  "name": "cdyun/thinkphp-plugin-admin",
+  "description": "Thinkphp Admin 模块插件",
   "license": "MIT",
   "keywords": [
     "php",
     "admin",
+    "thinkphp",
     "cdyun"
   ],
   "authors": [
@@ -19,12 +20,21 @@
   },
   "autoload": {
     "psr-4": {
-      "app\\": "src/"
+      "app\\admin\\": "src"
     }
   },
   "extra": {
-      "think": {
-          "app":"src/admin"
-      }
+    "config": {
+      "type": "module",
+      "name": "系统后台管理",
+      "document": "https://github.com/cdyun303/thinkphp-plugin-admin.git",
+      "description": "后台基础管理模块，系统账号及安全配置管理。"
+    },
+    "plugin": {
+      "copy": {
+        "src": "!app/admin"
+      },
+      "clear": true
+    }
   }
 }

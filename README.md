@@ -1,1 +1,1 @@
-thinkphp-admin
+# Thinkphp Admin 模块插件
