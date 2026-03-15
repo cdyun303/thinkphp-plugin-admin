@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+		<title>登录</title>
+		<!-- 样 式 文 件 -->
+		<link rel="stylesheet" href="__STATIC__/lib/pear/css/pear.css"/>
+		<link rel="stylesheet" href="__STATIC__/admin/css/pages/login.css"/>
+</head>
+<!-- 代 码 结 构 -->
+<body>
+<div class="login-wrapper">
+		<div class="illustration-section">
+				<div class="illustration-graphic"></div>
+				<div class="illustration-content">
+						<h1>欢迎使用我们的平台</h1>
+						<p>在这里，您可以轻松管理您的账户，享受便捷的服务体验。</p>
+				</div>
+		</div>
+
+		<div class="login-section">
+				<div class="login-header">
+						<h2>用户登录</h2>
+						<p>请使用您的账户信息登录</p>
+				</div>
+
+				<form class="layui-form">
+						<input type="hidden" name="__token__" value="{:token()}"/>
+						<div class="layui-form-item">
+								<div class="layui-input-block">
+										<i class="input-icon layui-icon layui-icon-username"></i>
+										<input type="text" name="username" lay-verify="required" placeholder="账号" lay-vertype="tips"
+										       autocomplete="off" class="layui-input">
+								</div>
+						</div>
+
+						<div class="layui-form-item">
+								<div class="layui-input-block">
+										<i class="input-icon layui-icon layui-icon-password"></i>
+										<input type="password" name="password" lay-verify="required" placeholder="密码" lay-vertype="tips"
+										       autocomplete="off" lay-affix="eye" class="layui-input">
+								</div>
+						</div>
+
+						<div class="layui-form-item">
+								<div class="layui-input-block">
+										<div class="captcha-container">
+												<div class="captcha-input">
+														<i class="input-icon layui-icon layui-icon-auz"></i>
+														<input type="text" name="captcha" lay-verify="required" placeholder="验证码"
+														       lay-vertype="tips"
+														       autocomplete="off" class="layui-input">
+												</div>
+												<img src="{:captcha_src()}" class="captcha-code" id="captchaCode" alt="">
+										</div>
+								</div>
+						</div>
+
+						<div class="layui-form-item layui-form-item-action">
+								<div class="layui-form-item">
+										<input type="checkbox" name="remember" title="记住我" lay-skin="primary">
+								</div>
+						</div>
+
+						<div class="layui-form-item">
+								<div class="layui-input-block">
+
+										<button type="submit" class="pear-btn pear-btn-primary layui-btn" lay-submit lay-filter="login">
+												登 录
+										</button>
+								</div>
+						</div>
+				</form>
+
+				<div class="signup-link">
+						<p>还没有账户？<a href="#" onclick="alert('注册功能尚未开放')">立即注册</a></p>
+				</div>
+		</div>
+</div>
+<script>
+    var color = localStorage.getItem("theme-color-color");
+    var second = localStorage.getItem("theme-color-second");
+    if (!color || !second) {
+        localStorage.setItem("theme-color-color", "#2d8cf0");
+        localStorage.setItem("theme-color-second", "#ecf5ff");
+    }
+</script>
+<!-- 资 源 引 入 -->
+<script src="__STATIC__/lib/layui/layui.js?v=2.13.4"></script>
+<script src="__STATIC__/lib/pear/pear.js"></script>
+<script>
+    layui.use(['form', 'button', 'popup', 'layer', 'theme', 'admin'], function () {
+
+        var $ = layui.$, layer = layui.layer, form = layui.form, captcha = '#captchaCode';
+
+        // 刷新验证码
+        function refreshCaptcha() {
+            $(captcha).attr('src', '{:admin_captcha_src()}?v=' + new Date().getTime());
+        }
+
+        // 点击验证码图片刷新
+        $(captcha).on('click', function () {
+            refreshCaptcha();
+        });
+
+        refreshCaptcha();
+        // 登 录 提 交
+        form.on('submit(login)', function (data) {
+            layer.load();
+            $.ajax({
+                url: '/app/core/account/login',
+                type: "POST",
+                data: data.field,
+                success: function (res) {
+                    layer.closeAll('loading');
+                    if (!res.code) {
+                        layui.popup.success('登录成功', function () {
+                            location.reload();
+                        })
+                    } else {
+                        layui.popup.failure(res.msg);
+                        refreshCaptcha();
+                    }
+                }
+            });
+            return false;
+        });
+    })
+</script>
+</body>
+</html>
