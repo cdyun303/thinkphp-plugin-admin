@@ -18,7 +18,7 @@ class InstallController extends AdminBaseController
     {
         $isInstall = base_path('admin') . 'install.lock';
         clearstatcache();
-        if (!is_file($isInstall)) {
+        if (is_file($isInstall)) {
             error('管理后台已经安装！如需重新安装，请删除该文件再试！');
         }
         if (!class_exists(DbManager::class)) {
