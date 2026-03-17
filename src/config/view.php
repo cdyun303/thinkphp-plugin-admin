@@ -4,6 +4,7 @@
 return [
     // 视图输出字符串内容替换
     'tpl_replace_string' => [
-        '__STATIC__'   => "/static",
+        '__ADMIN__'   => "/static/admin",
+        '__LIB__'   => "/static/lib",
     ]
 ];

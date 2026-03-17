@@ -10,7 +10,6 @@ declare (strict_types=1);
 namespace app\admin\controller\core;
 
 use app\admin\controller\AdminBaseController;
-use think\DbManager;
 
 class InstallController extends AdminBaseController
 {
@@ -20,9 +19,6 @@ class InstallController extends AdminBaseController
         clearstatcache();
         if (is_file($isInstall)) {
             error('管理后台已经安装！如需重新安装，请删除该文件再试！');
-        }
-        if (!class_exists(DbManager::class)) {
-            error('安装ThinkORM组件后再试！');
         }
 
         $type = $this->request->post('type');
@@ -120,23 +116,23 @@ return [
     'connections'     => [
         '$type' => [
             // 数据库类型
-            'type'            => env('$type.type', '$type'),
+            'type'            => '$type',
             // 服务器地址
-            'hostname'        => env('$type.hostname', '$hostname'),
+            'hostname'        => '$hostname',
             // 数据库名
-            'database'        => env('$type.database', '$database'),
+            'database'        => '$database',
             // 用户名
-            'username'        => env('$type.username', '$username'),
+            'username'        => '$username',
             // 密码
-            'password'        => env('$type.password', '$password'),
+            'password'        => '$password',
             // 端口
-            'hostport'        => env('$type.hostport', '$hostport'),
+            'hostport'        => '$hostport',
             // 数据库连接参数
             'params'          => [],
             // 数据库编码
             'charset'         => env('$type.charset', 'utf8mb4'),
             // 数据库表前缀
-            'prefix'          => env('$type.prefix', '$prefix'),
+            'prefix'          => '$prefix',
 
             // 数据库部署方式:0 集中式(单一服务器),1 分布式(主从服务器)
             'deploy'          => 0,
@@ -177,15 +173,6 @@ EOF;
 
         // 写入安装记录标记
         file_put_contents($isInstall, '管理后台已经安装！如需重新安装，请删除该文件再试！');
-
-
-        // 写入数据库配置文件
-        //file_put_contents(runtime_path() . 'database.php', $config_content);
-        //copy(runtime_path() . 'database.php', base_path('admin/config') . 'database.php');
-//        exec('cp -rf ' . runtime_path() . 'database.php ' . base_path('admin/config') . 'database.php');
-
-        // 写入安装记录标记
-//        file_put_contents($isInstall, '管理后台已经安装！如需重新安装，请删除该文件再试！');
 
         success();
     }
