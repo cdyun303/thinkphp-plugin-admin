@@ -52,9 +52,9 @@ class InstallController extends AdminBaseController
         }
 
         $tables_to_install = [
-            $prefix . 'admin_account',
+            $prefix . 'admin_user',
             $prefix . 'admin_role',
-            $prefix . 'admin_account_role',
+            $prefix . 'admin_user_role',
             $prefix . 'admin_rule',
             $prefix . 'option',
             $prefix . 'user',
