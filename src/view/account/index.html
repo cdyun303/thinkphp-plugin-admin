@@ -107,11 +107,12 @@
         <script src="__ADMIN__/js/permission.js"></script>
         <script>
 
-            layui.use(["form", "popup"], function () {
-                let form = layui.form;
+            layui.use(["form", "popup","responseCode"], function () {
+                let form = layui.form,
+                  response = layui.responseCode;
                 let $ = layui.$;
                 $.ajax({
-                    url: "/app/admin/account/info",
+                    url: "/admin/core/account/info",
                     dataType: "json",
                     success: function (res) {
                         form.val("baseInfo", res.data);
@@ -120,13 +121,13 @@
 
                 form.on("submit(saveBaseInfo)", function(data){
                     $.ajax({
-                        url: "/app/admin/account/update",
+                        url: "/admin/core/account/update",
                         dataType: "json",
                         type: "POST",
                         data: data.field,
                         success: function (res) {
-                            if (res.code) {
-                                return layui.popup.failure(res.msg);
+                            if (res.code !== response.SUCCESS) {
+                                return layui.popup.failure(res.message);
                             }
                             return layui.popup.success("操作成功");
                         }
@@ -136,15 +137,18 @@
 
                 form.on("submit(savePassword)", function(data){
                     $.ajax({
-                        url: "/app/admin/account/password",
+                        url: "/admin/core/account/password",
                         dataType: "json",
                         type: "POST",
                         data: data.field,
                         success: function (res) {
-                            if (res.code) {
-                                return layui.popup.failure(res.msg);
+                            if (res.code !== response.SUCCESS) {
+                                return layui.popup.failure(res.message);
                             }
-                            return layui.popup.success("操作成功");
+
+                            layui.popup.success('操作成功', function () {
+                                location.reload();
+                            })
                         }
                     });
                     return false;

@@ -7,12 +7,26 @@
 
 declare (strict_types=1);
 
-namespace app\admin\controller\core;
+namespace Thinkphp\Admin\controller\core;
 
-use app\admin\controller\AdminBaseController;
+use Thinkphp\Admin\controller\AdminBaseController;
+use Thinkphp\Admin\validate\AdminUserValidate;
+use Cdyun\PhpTool\Crypto;
+use Cdyun\PhpTool\Dir;
+use think\facade\Session;
+use function app\admin\controller\core\base_path;
+use function app\admin\controller\core\config;
+use function app\admin\controller\core\error;
+use function app\admin\controller\core\success;
+use function app\admin\controller\core\validate_data;
 
 class InstallController extends AdminBaseController
 {
+    /**
+     * 设置数据库
+     * @return void
+     * @author cdyun(121625706@qq.com)
+     */
     public function step1()
     {
         $isInstall = base_path('admin') . 'install.lock';
@@ -55,7 +69,7 @@ class InstallController extends AdminBaseController
             $prefix . 'admin_user',
             $prefix . 'admin_role',
             $prefix . 'admin_user_role',
-            $prefix . 'admin_rule',
+            $prefix . 'admin_node',
             $prefix . 'option',
             $prefix . 'user',
             $prefix . 'upload',
@@ -90,6 +104,11 @@ class InstallController extends AdminBaseController
                 $db->exec($sql);
             }
         }
+        // 导入菜单
+        $menus = Dir::getFileContent(base_path('admin'), 'node');
+
+        // 安装过程中没有数据库配置，无法使用api\Menu::import()方法
+        $this->importMenu($prefix . 'admin_node', $menus, $db);
 
         $config_content = <<<EOF
 <?php
@@ -259,5 +278,133 @@ EOF;
         }
 
         return $output;
+    }
+
+    /**
+     * 导入菜单
+     * @param string $table - 表名
+     * @param array $menu_tree - 菜单树
+     * @param \PDO $pdo - 数据库连接
+     * @return void
+     * @author cdyun(121625706@qq.com)
+     */
+    protected function importMenu(string $table, array $menu_tree, \PDO $pdo)
+    {
+        if (is_numeric(key($menu_tree)) && !isset($menu_tree['key'])) {
+            foreach ($menu_tree as $item) {
+                $this->importMenu($table, $item, $pdo);
+            }
+            return;
+        }
+        $children = $menu_tree['children'] ?? [];
+        unset($menu_tree['children']);
+        $smt = $pdo->prepare("select * from " . $table . " where `key`=:key limit 1");
+        $smt->execute(['key' => $menu_tree['key']]);
+        $old_menu = $smt->fetch();
+        if ($old_menu) {
+            $pid = $old_menu['id'];
+            $params = [
+                'title' => $menu_tree['title'],
+                'icon' => $menu_tree['icon'] ?? '',
+                'key' => $menu_tree['key'],
+            ];
+            $sql = "update " . $table . " set title=:title, icon=:icon where `key`=:key";
+            $smt = $pdo->prepare($sql);
+            $smt->execute($params);
+        } else {
+            $pid = $this->addMenu($table, $menu_tree, $pdo);
+        }
+        foreach ($children as $menu) {
+            $menu['pid'] = $pid;
+            $this->importMenu($table, $menu, $pdo);
+        }
+    }
+
+    /**
+     * 添加菜单
+     * @param string $table - 表名
+     * @param array $menu - 菜单数据
+     * @param \PDO $pdo - 数据库连接
+     * @return false|string
+     * @author cdyun(121625706@qq.com)
+     */
+    protected function addMenu(string $table, array $menu, \PDO $pdo)
+    {
+        $allow_columns = ['title', 'key', 'icon', 'href', 'pid', 'weight', 'type'];
+        $data = [];
+        foreach ($allow_columns as $column) {
+            if (isset($menu[$column])) {
+                $data[$column] = $menu[$column];
+            }
+        }
+        $time = date('Y-m-d H:i:s');
+        $data['create_at'] = $data['update_at'] = $time;
+        $values = [];
+        foreach ($data as $k => $v) {
+            $values[] = ":$k";
+        }
+        $columns = array_keys($data);
+        foreach ($columns as $k => $column) {
+            $columns[$k] = "`$column`";
+        }
+        $sql = "insert into " . $table . " (" . implode(',', $columns) . ") values (" . implode(',', $values) . ")";
+        $smt = $pdo->prepare($sql);
+        foreach ($data as $key => $value) {
+            $smt->bindValue($key, $value);
+        }
+        $smt->execute();
+        return $pdo->lastInsertId();
+    }
+
+    /**
+     * 步骤2创建管理员
+     * @return void
+     * @author cdyun(121625706@qq.com)
+     */
+    public function step2()
+    {
+        $username = $this->request->post('username');
+        $password = $this->request->post('password');
+        validate_data(['username' => $username, 'password' => $password,], AdminUserValidate::class, 'step');
+        $password_confirm = $this->request->post('password_confirm');
+        if ($password != $password_confirm) {
+            error('两次密码不一致');
+        }
+        $isInstall = base_path('admin') . 'install.lock';
+        if (!is_file($isInstall)) {
+            error('请先完成第一步数据库配置');
+        }
+        $default = config('database.default', 'mysql');
+        $connection = config('database.connections.' . $default);
+        $pdo = $this->getPdo($connection['hostname'], $connection['username'], $connection['password'], $connection['hostport'], $connection['database']);
+
+        $adminTable = $connection['prefix'] . 'admin_user';
+        if ($pdo->query('select * from `' . $adminTable . '`')->fetchAll()) {
+            error('管理后台已经安装完毕，无法通过此页面创建管理员');
+        }
+
+        $smt = $pdo->prepare("insert into `" . $adminTable . "` (`username`, `password`, `nickname`, `create_at`, `update_at`) values (:username, :password, :nickname, :create_at, :update_at)");
+        $time = date('Y-m-d H:i:s');
+        $data = [
+            'username' => $username,
+            'password' => Crypto::passwordHash($password),
+            'nickname' => '超级管理员',
+            'create_at' => $time,
+            'update_at' => $time
+        ];
+        foreach ($data as $key => $value) {
+            $smt->bindValue($key, $value);
+        }
+        $smt->execute();
+        $admin_id = $pdo->lastInsertId();
+
+        $adminRoleTable = $connection['prefix'] . 'admin_user_role';
+        $smt = $pdo->prepare("insert into `" . $adminRoleTable . "` (`role_id`, `admin_id`) values (:role_id, :admin_id)");
+        $smt->bindValue('role_id', 1);
+        $smt->bindValue('admin_id', $admin_id);
+        $smt->execute();
+
+        Session::clearFlashData();
+        success();
     }
 }

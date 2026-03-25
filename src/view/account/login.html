@@ -87,12 +87,13 @@
     }
 </script>
 <!-- 资 源 引 入 -->
-<script src="__LIB__/layui/layui.js?v=2.13.4"></script>
+<script src="__LIB__/layui/layui.js?v=2.8.12"></script>
 <script src="__LIB__/pear/pear.js"></script>
 <script>
-    layui.use(['form', 'button', 'popup', 'layer', 'theme', 'admin'], function () {
+    layui.use(['form', 'button', 'popup', 'layer', 'theme', 'admin', "responseCode"], function () {
 
-        var $ = layui.$, layer = layui.layer, form = layui.form, captcha = '#captchaCode';
+        var $ = layui.$, layer = layui.layer, form = layui.form,
+            response = layui.responseCode, captcha = '#captchaCode';
 
         // 刷新验证码
         function refreshCaptcha() {
@@ -109,17 +110,17 @@
         form.on('submit(login)', function (data) {
             layer.load();
             $.ajax({
-                url: '/app/core/account/login',
+                url: '/admin/core/account/login',
                 type: "POST",
                 data: data.field,
                 success: function (res) {
                     layer.closeAll('loading');
-                    if (!res.code) {
+                    if (res.code === response.SUCCESS) {
                         layui.popup.success('登录成功', function () {
                             location.reload();
                         })
                     } else {
-                        layui.popup.failure(res.msg);
+                        layui.popup.failure(res.message);
                         refreshCaptcha();
                     }
                 }

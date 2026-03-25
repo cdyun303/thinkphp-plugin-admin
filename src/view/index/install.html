@@ -2,7 +2,7 @@
 <html lang="zh-cn">
 <head>
 		<meta charset="utf-8">
-		<title>Webman Admin 安装</title>
+		<title>Thinkphp Admin 安装</title>
 		<link rel="stylesheet" href="__LIB__/pear/css/pear.css"/>
 		<link rel="stylesheet" href="__ADMIN__/css/reset.css"/>
 </head>
@@ -134,9 +134,8 @@
 																		<i class="layui-icon layui-circle pear-back"
 																		   style="color: white;font-size:30px;font-weight:bold;background: #52C41A;padding: 20px;line-height: 80px;">&#xe605;</i>
 																		<div style="font-size: 24px;color: #333;font-weight: 500;margin-top: 30px;">
-																				安装成功
+																				恭喜您，安装成功
 																		</div>
-																		<div style="font-size: 14px;color: #666;margin-top: 20px;">需要重启才能生效</div>
 																</div>
 																<div style="text-align: center;margin-top: 50px;">
 																		<button class="pear-btn pear-btn-primary finish">进入后台</button>
@@ -164,9 +163,10 @@
 <script src="__LIB__/pear/pear.js"></script>
 
 <script>
-    layui.use(["form", "step", "code", "element", "popup"], function () {
+    layui.use(["form", "step", "code", "element", "popup", "responseCode"], function () {
         var $ = layui.$,
             form = layui.form,
+            response = layui.responseCode,
             step = layui.step;
 
         layui.code();
@@ -194,7 +194,7 @@
                 dataType: "json",
                 data: data.field,
                 success: function (res) {
-                    if (res.code) {
+                    if (res.code !== response.SUCCESS) {
                         return layui.popup.failure(res.message);
                     }
                     layui.popup.success("操作成功", function () {
@@ -216,8 +216,8 @@
                 dataType: "json",
                 data: data.field,
                 success: function (res) {
-                    if (res.code) {
-                        return layui.popup.failure(res.msg);
+                    if (res.code !== response.SUCCESS) {
+                        return layui.popup.failure(res.message);
                     }
                     //layui.popup.success("安装成功");
                     step.next("#stepForm");

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+		<meta charset="UTF-8">
+		<title>邮件设置</title>
+		<link rel="stylesheet" href="__LIB__/layui/css/layui.css?v=2.8.12"/>
+		<link rel="stylesheet" href="__LIB__/jsoneditor/jsoneditor.css"/>
+		<link rel="stylesheet" href="__LIB__/pear/css/pear.css"/>
+		<link rel="stylesheet" href="__ADMIN__/css/reset.css"/>
+		<style>
+        .jsoneditor-wrap {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: row;
+            gap: 10px;
+            margin: 0 0 30px;
+        }
+
+        .jsoneditor-wrap .item {
+            width: 50%;
+        }
+
+        .jsoneditor-wrap .item .item-title {
+            padding: 8px 0;
+        }
+
+        .jsoneditor-btn {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 50px;
+        }
+		</style>
+</head>
+<body class="pear-container">
+<div class="layui-card">
+		<div class="layui-card-body">
+				<div class="jsoneditor-wrap">
+						<div class="item">
+								<div class="item-title">编辑窗口</div>
+								<!-- 编辑器容器 -->
+								<div id="jsoneditor" style="width: 100%; height: 500px;"></div>
+						</div>
+						<div class="item">
+								<div class="item-title">预览窗口</div>
+								<div id="jsonviewer" style="width: 100%; height: 500px;"></div>
+						</div>
+				</div>
+
+				<div class="jsoneditor-btn">
+
+						<form class="layui-form" lay-filter="tabInfo">
+								<button type="submit" class="pear-btn pear-btn-primary pear-btn-md" lay-submit=""
+								        lay-filter="saveInfo">
+										提交
+								</button>
+						</form>
+				</div>
+		</div>
+</div>
+
+
+<script src="__LIB__/layui/layui.js?v=2.8.12"></script>
+<script src="__LIB__/pear/pear.js"></script>
+<script src="__LIB__/jsoneditor/jsoneditor.js"></script>
+<script>
+    layui.use(["form", "layer", "popup", "responseCode"], function () {
+        let $ = layui.$, form = layui.form;
+
+        const viewerContainer = document.getElementById("jsonviewer");
+        const viewer = new JSONEditor(viewerContainer, {
+            mode: 'view',
+            search: false,
+            navigationBar: false,
+            statusBar: false,
+            history: false
+        });
+        // 初始化
+        const editorContainer = document.getElementById("jsoneditor");
+
+        const editor = new JSONEditor(editorContainer, {
+            mode: 'tree',
+            search: false,
+            navigationBar: false,
+            statusBar: false,
+            history: false
+            , onChange: function () {
+                const json = editor.get();
+                viewer.set(json);
+                viewer.expandAll();
+            }
+        });
+
+        $.ajax({
+            url: "/admin/core/mail/get",
+            dataType: "json",
+            success: function (res) {
+                if (res.code === layui.responseCode.ERROR) {
+                    return layui.popup.failure(res.message);
+                }
+                editor.set(res);
+                viewer.set(res);
+                viewer.expandAll();
+            }
+        });
+
+        form.on("submit(saveInfo)", function (data) {
+            $.ajax({
+                url: "/admin/core/mail/edit",
+                dataType: "json",
+                type: "POST",
+                data: {mail: editor.get()},
+                success: function (res) {
+                    if (res.code !== layui.responseCode.SUCCESS) {
+                        return layui.popup.failure(res.message);
+                    }
+                    return layui.popup.success("操作成功");
+                }
+            });
+            return false;
+        });
+    })
+</script>
+
+</body>
+</html>

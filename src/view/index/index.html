@@ -43,7 +43,7 @@
                         <a class="layui-icon layui-icon-username" href="javascript:;"></a>
                         <!-- 功 能 菜 单 -->
                         <dl class="layui-nav-child">
-                            <dd><a user-menu-url="__STATIC__/account/index" user-menu-id="10" user-menu-title="基本资料">基本资料</a></dd>
+                            <dd><a user-menu-url="/admin/core/account/index" user-menu-id="10" user-menu-title="基本资料">基本资料</a></dd>
                             <dd><a href="javascript:void(0);" class="logout">注销登录</a></dd>
                         </dl>
                     </li>
@@ -100,9 +100,10 @@
                 Account: {}
             };
 
-            layui.use(["admin","jquery","popup","drawer"], function() {
+            layui.use(["admin","jquery","popup","drawer","responseCode"], function() {
                 var $ = layui.$;
-                var admin = layui.admin;
+                var admin = layui.admin,
+                  response = layui.responseCode;
                 var popup = layui.popup;
 
                 admin.setConfigType("json");
@@ -113,11 +114,11 @@
                 // 登出逻辑
                 admin.logout(function(){
                     $.ajax({
-                        url: "/app/core/account/logout",
+                        url: "/admin/core/account/logout",
                         dataType: "json",
                         success: function (res) {
-                            if (res.code) {
-                                return popup.error(res.msg);
+                            if (res.code !== response.SUCCESS) {
+                                return popup.error(res.message);
                             }
                             popup.success("注销成功",function(){
                                 location.reload();
@@ -128,7 +129,7 @@
                 })
 
                 $.ajax({
-                    url: "/app/core/account/info",
+                    url: "/admin/core/account/info",
                     dataType: 'json',
                     success: function (res) {
                         window.Admin.Account = res.data;
