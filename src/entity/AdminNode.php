@@ -7,7 +7,7 @@
 
 declare (strict_types=1);
 
-namespace Thinkphp\Admin\entity;
+namespace app\admin\entity;
 
 use support\base\BaseEntity;
 

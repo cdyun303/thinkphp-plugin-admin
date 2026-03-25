@@ -7,14 +7,11 @@
 
 declare (strict_types=1);
 
-namespace Thinkphp\Admin\controller\core;
+namespace app\admin\controller\core;
 
-use Thinkphp\Admin\controller\AdminBaseController;
-use Thinkphp\Admin\entity\AdminUser;
+use app\admin\controller\AdminBaseController;
+use app\admin\entity\AdminUser;
 use think\facade\Db;
-use think\response\View;
-use function app\admin\controller\core\config;
-use function app\admin\controller\core\root_path;
 
 class IndexController extends AdminBaseController
 {

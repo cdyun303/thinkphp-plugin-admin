@@ -7,15 +7,10 @@
 
 declare (strict_types=1);
 
-namespace Thinkphp\Admin\controller\core;
+namespace app\admin\controller\core;
 
-use Thinkphp\Admin\controller\AdminBaseController;
-use Thinkphp\Admin\entity\Upload;
-use function app\admin\controller\core\app_sign_url;
-use function app\admin\controller\core\error;
-use function app\admin\controller\core\input;
-use function app\admin\controller\core\paginate;
-use function app\admin\controller\core\success;
+use app\admin\controller\AdminBaseController;
+use app\admin\entity\Upload;
 
 class UploadController extends AdminBaseController
 {

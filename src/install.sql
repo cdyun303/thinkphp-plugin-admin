@@ -93,7 +93,7 @@ CREATE TABLE IF NOT EXISTS `wa20260315_admin_role` (
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '系统角色表' ROW_FORMAT = Dynamic;
 
 LOCK TABLES `wa20260315_admin_role` WRITE;
-INSERT INTO `wa20260315_admin_role` VALUES (1,'超级管理员','admin','*',Null,'超级管理员', '1', 'sys', '2022-03-15 09:05:01', '2022-03-15 09:05:01', '0');
+INSERT INTO `wa20260315_admin_role` VALUES (1,'超级管理员','admin','*',0,'超级管理员', '1', 'sys', '2022-03-15 09:05:01', '2022-03-15 09:05:01', '0');
 UNLOCK TABLES;
 
 CREATE TABLE IF NOT EXISTS `wa20260315_admin_node` (

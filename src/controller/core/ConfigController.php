@@ -7,15 +7,12 @@
 
 declare (strict_types=1);
 
-namespace Thinkphp\Admin\controller\core;
+namespace app\admin\controller\core;
 
-use Thinkphp\Admin\controller\AdminBaseController;
-use Thinkphp\Admin\entity\Option;
-use Thinkphp\Admin\exception\AdminException;
-use Thinkphp\Admin\validate\ConfigValidate;
-use function app\admin\controller\core\app_domain_url;
-use function app\admin\controller\core\success;
-use function app\admin\controller\core\validate_data;
+use app\admin\controller\AdminBaseController;
+use app\admin\entity\Option;
+use app\admin\exception\AdminException;
+use app\admin\validate\ConfigValidate;
 
 class ConfigController extends AdminBaseController
 {

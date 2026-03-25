@@ -7,7 +7,7 @@
 
 declare (strict_types=1);
 
-namespace Thinkphp\Admin\exception;
+namespace app\admin\exception;
 
 use support\exception\AppException;
 

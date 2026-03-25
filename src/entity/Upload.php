@@ -7,14 +7,12 @@
 
 declare (strict_types=1);
 
-namespace Thinkphp\Admin\entity;
+namespace app\admin\entity;
 
-use Thinkphp\Admin\exception\AdminException;
+
+use app\admin\exception\AdminException;
 use Cdyun\ThinkphpUpload\UploadEnforcer;
 use support\base\BaseEntity;
-use think\facade\Db;
-use think\File;
-use function app\admin\entity\config;
 
 class Upload extends BaseEntity
 {

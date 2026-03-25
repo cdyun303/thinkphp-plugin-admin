@@ -7,12 +7,10 @@
 
 declare (strict_types=1);
 
-namespace Thinkphp\Admin\controller\core;
+namespace app\admin\controller\core;
 
-use Thinkphp\Admin\controller\AdminBaseController;
-use Thinkphp\Admin\entity\Option;
-use function app\admin\controller\core\error;
-use function app\admin\controller\core\success;
+use app\admin\controller\AdminBaseController;
+use app\admin\entity\Option;
 
 class SmsController extends AdminBaseController
 {

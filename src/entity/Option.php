@@ -7,15 +7,10 @@
 
 declare (strict_types=1);
 
-namespace Thinkphp\Admin\entity;
+namespace app\admin\entity;
 
-use Thinkphp\Admin\exception\AdminException;
-use Cdyun\PhpTool\Str;
+use app\admin\exception\AdminException;
 use support\base\BaseEntity;
-use think\db\exception\DataNotFoundException;
-use think\db\exception\DbException;
-use think\db\exception\ModelNotFoundException;
-use function app\admin\entity\error;
 
 class Option extends BaseEntity
 {

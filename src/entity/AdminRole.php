@@ -7,14 +7,11 @@
 
 declare (strict_types=1);
 
-namespace Thinkphp\Admin\entity;
+namespace app\admin\entity;
 
-use Thinkphp\Admin\exception\AdminException;
+use app\admin\exception\AdminException;
 use Cdyun\PhpTool\Arr;
 use support\base\BaseEntity;
-use think\db\exception\DataNotFoundException;
-use think\db\exception\DbException;
-use think\db\exception\ModelNotFoundException;
 
 class AdminRole extends BaseEntity
 {

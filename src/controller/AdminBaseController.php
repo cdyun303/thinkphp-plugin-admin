@@ -7,7 +7,7 @@
 
 declare (strict_types=1);
 
-namespace Thinkphp\Admin\controller;
+namespace app\admin\controller;
 
 use support\base\BaseController;
 

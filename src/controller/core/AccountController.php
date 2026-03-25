@@ -7,17 +7,13 @@
 
 declare (strict_types=1);
 
-namespace Thinkphp\Admin\controller\core;
+namespace app\admin\controller\core;
 
-use Thinkphp\Admin\controller\AdminBaseController;
-use Thinkphp\Admin\entity\AdminRole;
-use Thinkphp\Admin\entity\AdminUser;
-use Thinkphp\Admin\validate\AdminUserValidate;
+use app\admin\controller\AdminBaseController;
+use app\admin\entity\AdminRole;
+use app\admin\entity\AdminUser;
+use app\admin\validate\AdminUserValidate;
 use Cdyun\PhpTool\Crypto;
-use function app\admin\controller\core\error;
-use function app\admin\controller\core\session;
-use function app\admin\controller\core\success;
-use function app\admin\controller\core\validate_data;
 
 class AccountController extends AdminBaseController
 {

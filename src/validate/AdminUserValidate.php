@@ -7,7 +7,7 @@
 
 declare (strict_types=1);
 
-namespace Thinkphp\Admin\validate;
+namespace app\admin\validate;
 
 use support\base\BaseValidate;
 

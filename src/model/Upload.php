@@ -7,7 +7,7 @@
 
 declare (strict_types=1);
 
-namespace Thinkphp\Admin\model;
+namespace app\admin\model;
 
 use support\base\BaseModel;
 

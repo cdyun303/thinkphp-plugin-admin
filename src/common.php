@@ -1,6 +1,6 @@
 <?php
 // 公共函数文件
-use Thinkphp\Admin\entity\AdminUser;
+use app\admin\entity\AdminUser;
 use think\facade\Route;
 
 /**

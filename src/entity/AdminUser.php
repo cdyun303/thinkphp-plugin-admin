@@ -7,16 +7,11 @@
 
 declare (strict_types=1);
 
-namespace Thinkphp\Admin\entity;
+namespace app\admin\entity;
 
-use Thinkphp\Admin\exception\AdminException;
+use app\admin\exception\AdminException;
 use Cdyun\PhpTool\Crypto;
 use support\base\BaseEntity;
-use Thinkphp\Admin\entity\AdminRole;
-use function app\admin\entity\error;
-use function app\admin\entity\get_ip;
-use function app\admin\entity\runtime_path;
-use function app\admin\entity\session;
 
 class AdminUser extends BaseEntity
 {

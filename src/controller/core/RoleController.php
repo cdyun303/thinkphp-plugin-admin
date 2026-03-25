@@ -7,19 +7,13 @@
 
 declare (strict_types=1);
 
-namespace Thinkphp\Admin\controller\core;
+namespace app\admin\controller\core;
 
-use Thinkphp\Admin\controller\AdminBaseController;
-use Thinkphp\Admin\entity\AdminNode;
-use Thinkphp\Admin\entity\AdminRole;
-use Thinkphp\Admin\entity\AdminUser;
+use app\admin\controller\AdminBaseController;
+use app\admin\entity\AdminNode;
+use app\admin\entity\AdminRole;
+use app\admin\entity\AdminUser;
 use Cdyun\PhpTool\Arr;
-use think\db\exception\DataNotFoundException;
-use think\db\exception\DbException;
-use think\db\exception\ModelNotFoundException;
-use function app\admin\controller\core\error;
-use function app\admin\controller\core\paginate;
-use function app\admin\controller\core\success;
 
 class RoleController extends AdminBaseController
 {
@@ -118,7 +112,7 @@ class RoleController extends AdminBaseController
         if ($ruleIds !== '*') {
             $include = explode(',', $ruleIds);
             // 获取所有父级 ID
-            $pIds = $this->getParentIdsFlat($result->toArray(), $include);
+            $pIds = Arr::getParentIds($result->toArray(), $include,'pid');
             // 合并父级和子级 ID 并去重
             $arrIds = array_unique(array_merge($pIds, $include));
             // 数据集查询
@@ -137,54 +131,4 @@ class RoleController extends AdminBaseController
         success(Arr::tree($items, 'id', 'pid', 'children'));
     }
 
-    /**
-     * 获取叶子节点的所有父节点 ID
-     * @param array $tree 树形结构数组
-     * @param int|string|array $leafId 叶子节点 ID，支持单个 ID 或 ID 数组
-     * @return array 返回所有父节点 ID 数组
-     * @author cdyun(121625706@qq.com)
-     */
-    protected function getParentIdsFlat(array $tree, int|string|array $leafId)
-    {
-        // 支持数组输入
-        if (is_array($leafId)) {
-            $allParentIds = [];
-            foreach ($leafId as $id) {
-                $parentIds = $this->getParentIdsFlat($tree, $id);
-                $allParentIds = array_merge($allParentIds, $parentIds);
-            }
-            return array_values(array_unique($allParentIds));
-        }
-
-        $map = [];
-        foreach ($tree as $node) {
-            $map[$node['id']] = $node;
-        }
-
-        if (!isset($map[$leafId])) {
-            return [];
-        }
-
-        $parentIds = [];
-        $currentId = $leafId;
-
-        $max_depth = 100;
-        while ($max_depth-- > 0 && isset($map[$currentId]) && $map[$currentId]['pid'] != 0 && $map[$currentId]['pid'] !== null) {
-            $parentId = $map[$currentId]['pid'];
-
-            // 防止死循环（数据脏了的情况）
-            if ($parentId == $currentId) {
-                break;
-            }
-
-            $parentIds[] = $parentId;
-            $currentId = $parentId;
-
-            if (!isset($map[$currentId])) {
-                break;
-            }
-        }
-
-        return $parentIds;
-    }
 }

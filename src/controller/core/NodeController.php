@@ -7,13 +7,12 @@
 
 declare (strict_types=1);
 
-namespace Thinkphp\Admin\controller\core;
+namespace app\admin\controller\core;
 
-use Thinkphp\Admin\controller\AdminBaseController;
-use Thinkphp\Admin\entity\AdminNode;
-use Thinkphp\Admin\entity\AdminRole;
+use app\admin\controller\AdminBaseController;
+use app\admin\entity\AdminNode;
+use app\admin\entity\AdminRole;
 use Cdyun\PhpTool\Arr;
-use function app\admin\controller\core\success;
 
 class NodeController extends AdminBaseController
 {
@@ -25,8 +24,9 @@ class NodeController extends AdminBaseController
     public function index(): string
     {
         return $this->fetch('node/index');
-        
+
     }
+
     /**
      * 获取角色菜单节点
      * @return void
@@ -50,7 +50,7 @@ class NodeController extends AdminBaseController
             $item['icon'] = $item['icon'] ? "layui-icon {$item['icon']}" : '';
             $fmtNodes[] = $item;
         }
-        $nodeTree=Arr::toTree($fmtNodes, 0, 'id','pid');
+        $nodeTree = Arr::toTree($fmtNodes, 0, 'id', 'pid');
 
         // 超级管理员权限为 *
         if (!in_array('*', $rules)) {
