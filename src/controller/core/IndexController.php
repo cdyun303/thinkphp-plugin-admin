@@ -1,6 +1,6 @@
 <?php
 /**
- * IndexController.php
+ *  主页
  * @author cdyun(121625706@qq.com)
  * @date 2026/3/12 02:06
  */
@@ -39,13 +39,13 @@ class IndexController extends AdminBaseController
             $this->assign([
                 'db' => $db_config
             ]);
-            return $this->fetch('index/install');
+            return $this->fetch('core/index/install');
         }
         $admin = admin();
         if (!$admin) {
-            return $this->fetch('account/login');
+            return $this->fetch('core/account/login');
         }
-        return $this->fetch('index/index');
+        return $this->fetch('core/index/index');
     }
 
     /**
@@ -90,7 +90,7 @@ class IndexController extends AdminBaseController
             'day7_detail' => array_reverse($day7_detail),
         ]);
 
-        return $this->fetch('index/dashboard');
+        return $this->fetch('core/index/dashboard');
     }
 
     /**

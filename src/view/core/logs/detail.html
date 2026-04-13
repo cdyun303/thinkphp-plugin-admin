@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+		<meta charset="UTF-8">
+		<title>详情页面</title>
+		<link rel="stylesheet" href="__LIB__/pear/css/pear.css"/>
+		<link rel="stylesheet" href="__ADMIN__/css/reset.css"/>
+		<style>
+        .data-box {
+            margin: 10px 50px;
+            border: 1px solid #ddd;
+        }
+
+        .data-box .data-label, .data-box .data-value {
+            padding-top: 8px;
+            padding-bottom: 8px;
+        }
+
+        .data-box .data-value {
+            padding-left: 16px;
+            padding-right: 16px;
+        }
+
+        .data-box .data-label {
+            width: 120px;
+            border-right: 1px solid #ddd;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .data-box .data-value {
+            width: calc(100% - 120px);
+            word-wrap: break-word;
+            word-break: break-all;
+        }
+
+        .data-box .data-item {
+            border-bottom: 1px solid #ddd;
+            display: flex;
+        }
+
+        .data-box .data-item:last-child {
+            border-bottom: 0;
+        }
+
+		</style>
+</head>
+<body>
+
+<div class="data-box">
+		<div class="data-item">
+				<div class="data-label">ID</div>
+				<div class="data-value" name="id"></div>
+		</div>
+		<div class="data-item">
+				<div class="data-label">账号</div>
+				<div class="data-value" name="admin_id"></div>
+		</div>
+		<div class="data-item">
+				<div class="data-label">应用名</div>
+				<div class="data-value" name="module"></div>
+		</div>
+		<div class="data-item">
+				<div class="data-label">控制器</div>
+				<div class="data-value" name="controller"></div>
+		</div>
+		<div class="data-item">
+				<div class="data-label">方法名</div>
+				<div class="data-value" name="action"></div>
+		</div>
+		<div class="data-item">
+				<div class="data-label">执行操作</div>
+				<div class="data-value" name="title"></div>
+		</div>
+		<div class="data-item">
+				<div class="data-label">请求类型</div>
+				<div class="data-value" name="method"></div>
+		</div>
+		<div class="data-item">
+				<div class="data-label">请求链接</div>
+				<div class="data-value" name="url"></div>
+		</div>
+		<div class="data-item">
+				<div class="data-label">请求参数</div>
+				<div class="data-value" name="param"></div>
+		</div>
+		<div class="data-item">
+				<div class="data-label">响应内容</div>
+				<div class="data-value" style="max-height: 300px;overflow-y: scroll;" name="content"></div>
+		</div>
+		<div class="data-item">
+				<div class="data-label">IP地址</div>
+				<div class="data-value" name="ip"></div>
+		</div>
+		<div class="data-item">
+				<div class="data-label">浏览器</div>
+				<div class="data-value" name="browser"></div>
+		</div>
+		<div class="data-item">
+				<div class="data-label">系统</div>
+				<div class="data-value" name="os"></div>
+		</div>
+		<div class="data-item">
+				<div class="data-label">操作时间</div>
+				<div class="data-value" name="update_at"></div>
+		</div>
+</div>
+
+<script src="__LIB__/layui/layui.js?v=2.8.12"></script>
+<script src="__LIB__/pear/pear.js"></script>
+<script src="__ADMIN__/js/permission.js"></script>
+<script>
+    // 相关接口
+    const PRIMARY_KEY = "id";
+    const LIST_API = "/admin/core/logs/list" + location.search;
+
+    // 获取数据库记录
+    layui.use(["form", "util", "popup", "responseCode"], function () {
+        let $ = layui.$;
+        $.ajax({
+            url: LIST_API,
+            dataType: "json",
+            success: function (res) {
+
+                // 给表单初始化数据
+                layui.each(res.data[0], function (key, value) {
+                    const d = res.data[0];
+                    let obj = $('*[name="' + key + '"]');
+                    if (typeof obj[0] === "undefined" || !obj[0].nodeName) return;
+                    if (key === "admin_id") {
+                        obj.html(d.user.username ? d.user.username + ' - ' + d.user.nickname : value);
+                        return;
+                    }
+                    if (key === "param") {
+                        obj.html(JSON.stringify(value));
+                        return;
+                    }
+                    if (key === "content") {
+                        obj.html('<p>' + value + '</p>');
+                        return;
+                    }
+                    obj.html(value);
+                });
+
+
+                // ajax产生错误
+                if (res.code === layui.responseCode.ERROR) {
+                    layui.popup.failure(res.message);
+                }
+
+            }
+        });
+    });
+</script>
+
+</body>
+</html>

@@ -14,6 +14,7 @@ use support\base\BaseValidate;
 class AdminUserValidate extends BaseValidate
 {
     protected $rule = [
+        'id' => 'require',
         'username' => 'require|verifyAccount',
         'password' => 'require',
         'captcha' => 'require|captcha',
@@ -22,8 +23,10 @@ class AdminUserValidate extends BaseValidate
         'mobile' => 'mobile',
         'old_password' => 'require',
         'password_confirm' => 'require|confirm:password',
+        'roles' => 'require|string',
     ];
     protected $message = [
+        'id.require' => '用户ID不能为空',
         'username.require' => '用户名不能为空',
         'username.verifyAccount' => '用户名由字母开头，5-16位字母数字下划线构成或手机号码',
         'password.require' => '密码不能为空',
@@ -37,11 +40,14 @@ class AdminUserValidate extends BaseValidate
         'old_password.require' => '原始密码不能为空',
         'password_confirm.require' => '确认密码不能为空',
         'password_confirm.confirm' => '确认密码与新密码不一致',
+        'roles.require' => '角色必须选择',
+        'roles.string' => '角色格式错误',
     ];
     protected $scene = [
         'login' => ['username', 'password', 'captcha'],
-        'update' => ['nickname', 'email', 'mobile'],
         'password' => ['old_password', 'password', 'password_confirm'],
+        'create' => ['roles', 'username', 'password', 'nickname', 'email', 'mobile'],
+        'edit' => ['id', 'roles', 'username', 'nickname', 'email', 'mobile'],
     ];
 
     /**

@@ -10,12 +10,9 @@ declare (strict_types=1);
 namespace app\admin\model;
 
 use support\base\BaseModel;
-use think\model\concern\SoftDelete;
 
 class AdminNode extends BaseModel
 {
-    use SoftDelete;
-
     protected $name = 'admin_node';
 
 }

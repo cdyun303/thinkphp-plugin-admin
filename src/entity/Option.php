@@ -9,7 +9,7 @@ declare (strict_types=1);
 
 namespace app\admin\entity;
 
-use app\admin\exception\AdminException;
+use app\admin\common\exception\AdminException;
 use support\base\BaseEntity;
 
 class Option extends BaseEntity

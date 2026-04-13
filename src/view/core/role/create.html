@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+		<meta charset="UTF-8">
+		<title>新增页面</title>
+		<link rel="stylesheet" href="__LIB__/pear/css/pear.css"/>
+		<link rel="stylesheet" href="__ADMIN__/css/reset.css"/>
+</head>
+<body>
+
+<form class="layui-form" action="">
+
+		<div class="mainBox">
+				<div class="main-container mr-5">
+
+						<div class="layui-form-item">
+								<label class="layui-form-label required">父级</label>
+								<div class="layui-input-block">
+										<div name="pid" id="pid" value="1"></div>
+								</div>
+						</div>
+
+						<div class="layui-form-item">
+								<label class="layui-form-label required">角色名</label>
+								<div class="layui-input-block">
+										<input type="text" name="title" value="" required lay-verify="required" class="layui-input">
+								</div>
+						</div>
+
+						<div class="layui-form-item">
+								<label class="layui-form-label required">英文标识</label>
+								<div class="layui-input-block">
+										<input type="text" name="name" value="" required lay-verify="required" class="layui-input">
+								</div>
+						</div>
+
+						<div class="layui-form-item">
+								<label class="layui-form-label">权限选择</label>
+								<div class="layui-input-block">
+										<div name="rules" id="rules" value=""></div>
+								</div>
+						</div>
+
+						<div class="layui-form-item">
+								<label class="layui-form-label">角色备注</label>
+								<div class="layui-input-block">
+										<input type="text" name="remark" value="" class="layui-input">
+								</div>
+						</div>
+
+						<div class="layui-form-item">
+								<div class="layui-input-block" permission="admin.core.role.create">
+										<button type="submit" class="pear-btn pear-btn-primary pear-btn-md" lay-submit="" lay-filter="save">
+												提交
+										</button>
+										<button type="reset" class="pear-btn pear-btn-md">
+												重置
+										</button>
+								</div>
+						</div>
+
+				</div>
+		</div>
+
+</form>
+
+<script src="__LIB__/layui/layui.js?v=2.8.12"></script>
+<script src="__LIB__/pear/pear.js"></script>
+<script src="__ADMIN__/js/permission.js"></script>
+
+<script>
+
+    // 相关接口
+    const CREATE_API = "/admin/core/role/create";
+
+    // 字段 权限 rules
+    layui.use(["jquery", "xmSelect", "popup"], function () {
+        layui.$.ajax({
+            url: "/admin/core/role/rules?id=1",
+            dataType: "json",
+            success: function (res) {
+                let value = layui.$("#rules").attr("value");
+                let initValue = value ? value.split(",") : [];
+                layui.xmSelect.render({
+                    el: "#rules",
+                    name: "rules",
+                    initValue: initValue,
+                    data: res.data,
+                    tree: {"show": true, expandedKeys: initValue},
+                    toolbar: {show: true, list: ["ALL", "CLEAR", "REVERSE"]},
+                })
+            }
+        });
+    });
+
+    // 字段 父级 pid
+    layui.use(["jquery", "xmSelect", "popup", "responseCode"], function () {
+        layui.$.ajax({
+            url: "/admin/core/role/list?format=select",
+            dataType: "json",
+            success: function (res) {
+                let value = layui.$("#pid").attr("value");
+                let initValue = value ? value.split(",") : [];
+                layui.xmSelect.render({
+                    el: "#pid",
+                    name: "pid",
+                    initValue: initValue,
+                    tips: "请选择",
+                    data: res.data,
+                    value: "0",
+                    model: {"icon": "hidden", "label": {"type": "text"}},
+                    clickClose: true,
+                    radio: true,
+                    tree: {show: true, "strict": false, "clickCheck": true, "clickExpand": false, expandedKeys: true},
+                    on: function (data) {
+                        let id = data.arr[0] ? data.arr[0].value : "";
+                        if (!id) return;
+                        layui.$.ajax({
+                            url: '/admin/core/role/rules?id=' + id,
+                            dataType: 'json',
+                            success: function (res) {
+                                if (res.code === layui.responseCode.ERROR) {
+                                    return layui.popup.failure(res.message);
+                                }
+                                layui.xmSelect.get('#rules')[0].update({data: res.data});
+                            }
+                        });
+                    }
+                })
+                if (res.code === layui.responseCode.ERROR) {
+                    layui.popup.failure(res.message);
+                }
+            }
+        });
+    });
+
+    //提交事件
+    layui.use(["form", "popup", "responseCode"], function () {
+        layui.form.on("submit(save)", function (data) {
+            layui.$.ajax({
+                url: CREATE_API,
+                type: "POST",
+                dateType: "json",
+                data: data.field,
+                success: function (res) {
+                    if (res.code !== layui.responseCode.SUCCESS) {
+                        return layui.popup.failure(res.message);
+                    }
+                    return layui.popup.success("操作成功", function () {
+                        parent.refreshTable();
+                        parent.layer.close(parent.layer.getFrameIndex(window.name));
+                    });
+                }
+            });
+            return false;
+        });
+    });
+
+</script>
+
+</body>
+</html>

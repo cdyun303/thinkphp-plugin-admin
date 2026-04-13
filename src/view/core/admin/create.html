@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+		<meta charset="UTF-8">
+		<title>新增页面</title>
+		<link rel="stylesheet" href="__LIB__/pear/css/pear.css"/>
+		<link rel="stylesheet" href="__ADMIN__/css/reset.css"/>
+</head>
+<body>
+
+<form class="layui-form" action="">
+
+		<div class="mainBox">
+				<div class="main-container mr-5">
+
+						<div class="layui-form-item">
+								<label class="layui-form-label required">角色</label>
+								<div class="layui-input-block">
+										<div name="roles" id="roles" value=""></div>
+								</div>
+						</div>
+
+						<div class="layui-form-item">
+								<label class="layui-form-label required">用户名</label>
+								<div class="layui-input-block">
+										<input type="text" name="username" value="" required lay-verify="required" class="layui-input">
+								</div>
+						</div>
+
+						<div class="layui-form-item">
+								<label class="layui-form-label required">昵称</label>
+								<div class="layui-input-block">
+										<input type="text" name="nickname" value="" required lay-verify="required" class="layui-input">
+								</div>
+						</div>
+
+						<div class="layui-form-item">
+								<label class="layui-form-label required">密码</label>
+								<div class="layui-input-block">
+										<input type="text" name="password" value="" required lay-verify="required" class="layui-input">
+								</div>
+						</div>
+
+						<div class="layui-form-item">
+								<label class="layui-form-label">头像</label>
+								<div class="layui-input-block">
+										<img class="img-3" src=""/>
+										<input type="text" style="display:none" name="avatar" value="/static/admin/images/avatar.webp"/>
+										<button type="button" class="pear-btn pear-btn-primary pear-btn-sm" id="avatar" permission="admin.core.upload.move_upload">
+												<i class="layui-icon layui-icon-upload"></i>上传图片
+										</button>
+										<button type="button" class="pear-btn pear-btn-primary pear-btn-sm" id="attachment-choose-avatar" permission="admin.core.upload.attachment">
+												<i class="layui-icon layui-icon-align-left"></i>选择图片
+										</button>
+								</div>
+						</div>
+
+						<div class="layui-form-item">
+								<label class="layui-form-label">邮箱</label>
+								<div class="layui-input-block">
+										<input type="text" name="email" value="" class="layui-input">
+								</div>
+						</div>
+
+						<div class="layui-form-item">
+								<label class="layui-form-label">手机</label>
+								<div class="layui-input-block">
+										<input type="text" name="mobile" value="" class="layui-input">
+								</div>
+						</div>
+
+						<div class="layui-form-item">
+								<div class="layui-input-block" permission="admin.core.admin.create">
+										<button type="submit" class="pear-btn pear-btn-primary pear-btn-md" lay-submit="" lay-filter="save">
+												提交
+										</button>
+										<button type="reset" class="pear-btn pear-btn-md">
+												重置
+										</button>
+								</div>
+						</div>
+
+				</div>
+		</div>
+</form>
+
+<script src="__LIB__/layui/layui.js?v=2.8.12"></script>
+<script src="__LIB__/pear/pear.js"></script>
+<script src="__ADMIN__/js/permission.js"></script>
+<script>
+
+    // 相关接口
+    const CREATE_API = "/admin/core/admin/create";
+
+    // 字段 头像 avatar
+    layui.use(["upload", "layer", "responseCode"], function () {
+        let input = layui.$("#avatar").prev();
+        input.prev().attr("src", input.val());
+        layui.$("#attachment-choose-avatar").on("click", function () {
+            parent.layer.open({
+                type: 2,
+                title: "选择附件",
+                content: "/admin/core/upload/attachment?ext=jpg,jpeg,png,gif,bmp",
+                area: ["95%", "90%"],
+                success: function (layero, index) {
+                    parent.layui.$("#layui-layer" + index).data("callback", function (data) {
+                        input.val(data.url).prev().attr("src", data.preview);
+                    });
+                }
+            });
+        });
+        layui.upload.render({
+            elem: "#avatar",
+            url: "/admin/core/upload/move_upload",
+            value: "/static/admin/images/avatar.webp",
+            acceptMime: "image/gif,image/jpeg,image/jpg,image/png",
+            done: function (res) {
+                if (res.code !== layui.responseCode.SUCCESS) return layui.layer.msg(res.message);
+                this.item.prev().val(res.data.originLink).prev().attr("src", res.data.signLink);
+            }
+        });
+    });
+
+    // 字段 角色 roles
+    layui.use(["jquery", "xmSelect", "popup", "responseCode"], function() {
+        layui.$.ajax({
+            url: "/admin/core/role/list?format=select",
+            dataType: "json",
+            success: function (res) {
+                let value = layui.$("#roles").attr("value");
+                let initValue = value ? value.split(",") : [];
+                if (!top.Admin.Account.isSuperAdmin) {
+                    layui.each(res.data, function (k, v) {
+                        v.disabled = true;
+                    });
+                }
+                layui.xmSelect.render({
+                    el: "#roles",
+                    name: "roles",
+                    initValue: initValue,
+                    data: res.data,
+                    layVerify: "required",
+                    tree: {"show":true, expandedKeys:true, strict:false},
+                    toolbar: {show:true, list:["ALL","CLEAR","REVERSE"]},
+                });
+                if (res.code !== layui.responseCode.SUCCESS) {
+                    layui.popup.failure(res.message);
+                }
+            }
+        });
+    });
+
+    //提交事件
+    layui.use(["form", "popup", "responseCode"], function () {
+        layui.form.on("submit(save)", function (data) {
+            layui.$.ajax({
+                url: CREATE_API,
+                type: "POST",
+                dateType: "json",
+                data: data.field,
+                success: function (res) {
+                    if (res.code !== layui.responseCode.SUCCESS) {
+                        return layui.popup.failure(res.message);
+                    }
+                    return layui.popup.success("操作成功", function () {
+                        parent.refreshTable();
+                        parent.layer.close(parent.layer.getFrameIndex(window.name));
+                    });
+                }
+            });
+            return false;
+        });
+    });
+
+</script>
+
+</body>
+</html>

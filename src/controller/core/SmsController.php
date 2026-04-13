@@ -1,6 +1,6 @@
 <?php
 /**
- * SmsController.php
+ * 短信设置
  * @author cdyun(121625706@qq.com)
  * @date 2026/3/23 02:29
  */
@@ -9,9 +9,14 @@ declare (strict_types=1);
 
 namespace app\admin\controller\core;
 
+use app\admin\common\annotation\NodeGroup;
+use app\admin\common\annotation\NodeItem;
+use app\admin\common\Type;
 use app\admin\controller\AdminBaseController;
 use app\admin\entity\Option;
 
+#[NodeGroup(Type::NodeGroup['common'])]
+#[NodeItem(['title' => '短信设置', 'href' => '/admin/core/sms/index', 'weight' => 600])]
 class SmsController extends AdminBaseController
 {
     protected string $smsConfig = 'config_sms';
@@ -23,7 +28,7 @@ class SmsController extends AdminBaseController
      */
     public function index(): string
     {
-        return $this->fetch('sms/index');
+        return $this->fetch();
     }
 
     /**
@@ -42,6 +47,7 @@ class SmsController extends AdminBaseController
      * @return void
      * @author cdyun(121625706@qq.com)
      */
+    #[NodeItem]
     public function edit(): void
     {
         $sms = $this->request->post('sms');

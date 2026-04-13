@@ -10,12 +10,10 @@ declare (strict_types=1);
 namespace app\admin\model;
 
 use support\base\BaseModel;
-use think\model\concern\SoftDelete;
 use think\model\relation\BelongsToMany;
 
 class AdminUser extends BaseModel
 {
-    use SoftDelete;
 
     protected $name = 'admin_user';
 

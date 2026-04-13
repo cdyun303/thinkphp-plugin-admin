@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+		<meta charset="UTF-8">
+		<title>更新页面</title>
+		<link rel="stylesheet" href="__LIB__/pear/css/pear.css"/>
+		<link rel="stylesheet" href="__ADMIN__/css/reset.css"/>
+		<style>
+        .layui-iconpicker .layui-anim {
+            bottom: 42px !important;
+            top: inherit !important;
+        }
+		</style>
+</head>
+<body>
+
+<form class="layui-form">
+
+		<div class="mainBox">
+				<div class="main-container mr-5">
+
+						<div class="layui-form-item">
+								<label class="layui-form-label required">所属应用</label>
+								<div class="layui-input-block">
+										<div name="app_name" id="app_name" value="admin"></div>
+								</div>
+						</div>
+
+						<div class="layui-form-item">
+								<label class="layui-form-label required">菜单显示</label>
+								<div class="layui-input-block">
+										<input type="checkbox" id="is_menu" lay-filter="is_menu" lay-skin="switch" title="显示|隐藏"/>
+										<input type="text" style="display:none" name="is_menu" value="1" />
+								</div>
+						</div>
+
+						<div class="layui-form-item">
+								<label class="layui-form-label required">标题</label>
+								<div class="layui-input-block">
+										<input type="text" name="title" required lay-verify="required" value="" class="layui-input">
+								</div>
+						</div>
+
+						<div class="layui-form-item">
+								<label class="layui-form-label required">标识</label>
+								<div class="layui-input-block">
+										<input type="text" name="key" required lay-verify="required" value="" class="layui-input">
+								</div>
+						</div>
+
+						<div class="layui-form-item">
+								<label class="layui-form-label">上级菜单</label>
+								<div class="layui-input-block">
+										<div name="pid" id="pid" value="0"></div>
+								</div>
+						</div>
+
+						<div class="layui-form-item">
+								<label class="layui-form-label">url</label>
+								<div class="layui-input-block">
+										<input type="text" name="href" value="" class="layui-input">
+								</div>
+						</div>
+
+						<div class="layui-form-item">
+								<label class="layui-form-label">图标</label>
+								<div class="layui-input-block">
+										<input name="icon" id="icon"/>
+								</div>
+						</div>
+
+						<div class="layui-form-item">
+								<label class="layui-form-label">类型</label>
+								<div class="layui-input-block">
+										<div name="type" id="type" value="2"></div>
+								</div>
+						</div>
+
+						<div class="layui-form-item">
+								<label class="layui-form-label">排序</label>
+								<div class="layui-input-block">
+										<input type="number" name="weight" value="0" class="layui-input">
+								</div>
+						</div>
+
+						<div class="layui-form-item">
+								<div class="layui-input-block" permission="admin.core.node.edit">
+										<button type="submit" class="pear-btn pear-btn-primary pear-btn-md" lay-submit="" lay-filter="save">
+												提交
+										</button>
+										<button type="reset" class="pear-btn pear-btn-md">
+												重置
+										</button>
+								</div>
+						</div>
+
+				</div>
+		</div>
+</form>
+
+<script src="__LIB__/layui/layui.js?v=2.8.12"></script>
+<script src="__LIB__/pear/pear.js"></script>
+<script src="__ADMIN__/js/permission.js"></script>
+<script>
+
+    // 相关接口
+    let PRIMARY_KEY = "id";
+    const LIST_API = "/admin/core/node/list" + location.search;
+    const EDIT_API = "/admin/core/node/edit";
+
+    // 获取行数据
+    layui.use(["form", "util", "popup", "responseCode"], function () {
+        let $ = layui.$;
+        $.ajax({
+            url: LIST_API,
+            dataType: "json",
+            success: function (res) {
+
+                // 赋值表单
+                layui.each(res.data[0], function (key, value) {
+                    let obj = $('*[name="' + key + '"]');
+                    if (key === "password") {
+                        obj.attr("placeholder", "不更新密码请留空");
+                        return;
+                    }
+                    if (typeof obj[0] === "undefined" || !obj[0].nodeName) return;
+                    if (obj[0].nodeName.toLowerCase() === "textarea") {
+                        obj.html(layui.util.escape(value));
+                    } else {
+                        obj.attr("value", value);
+                    }
+                });
+
+                // 菜单显示 is_menu
+                layui.use(["form"], function() {
+                    layui.$("#is_menu").attr("checked", layui.$('input[name="is_menu"]').val() != 0);
+                    layui.form.render();
+                    layui.form.on("switch(is_menu)", function(data) {
+                        layui.$('input[name="is_menu"]').val(this.checked ? 1 : 0);
+                    });
+                })
+
+                // 图标选择
+                layui.use(["iconPicker"], function () {
+                    layui.iconPicker.render({
+                        elem: "#icon",
+                        type: "fontClass",
+                        page: false,
+                    });
+                });
+
+                // 获取上级菜单
+                layui.use(["jquery", "xmSelect", "popup", "responseCode"], function () {
+                    layui.$.ajax({
+                        url: "/admin/core/node/list?format=select&type=1,2",
+                        dataType: "json",
+                        success: function (res) {
+                            let value = layui.$("#pid").attr("value");
+                            let initValue = value ? value.split(",") : [];
+                            layui.xmSelect.render({
+                                el: "#pid",
+                                name: "pid",
+                                initValue: initValue,
+                                tips: "无",
+                                toolbar: {show: true, list: ["CLEAR"]},
+                                data: res.data,
+                                model: {"icon": "hidden", "label": {"type": "text"}},
+                                clickClose: true,
+                                radio: true,
+                                tree: {
+                                    show: true,
+                                    "strict": false,
+                                    "clickCheck": true,
+                                    "clickExpand": false,
+                                    expandedKeys: initValue
+                                },
+                            });
+                            if (res.code !== layui.responseCode.SUCCESS) {
+                                return layui.popup.failure(res.message);
+                            }
+                        }
+                    });
+                });
+
+                // 菜单类型下拉选择
+                layui.use(["jquery", "xmSelect"], function () {
+                    let value = layui.$("#type").attr("value");
+                    let initValue = value ? value.split(",") : [];
+                    layui.xmSelect.render({
+                        el: "#type",
+                        name: "type",
+                        initValue: initValue,
+                        data: [
+                            {"value": "1", "name": "目录"},
+                            {"value": "2", "name": "菜单"},
+                            {"value": "3", "name": "权限"}
+                        ],
+                        model: {"icon": "hidden", "label": {"type": "text"}},
+                        clickClose: true,
+                        radio: true,
+                    })
+                });
+
+
+                // 应用类型下拉列表
+                layui.use(["jquery", "xmSelect", "popup", "responseCode"], function () {
+                    layui.$.ajax({
+                        url: "/admin/core/node/list_app",
+                        dataType: "json",
+                        success: function (res) {
+                            let value = layui.$("#app_name").attr("value");
+                            let initValue = value ? value.split(",") : [];
+                            layui.xmSelect.render({
+                                el: "#app_name",
+                                name: "app_name",
+                                initValue: initValue,
+                                tips: "无",
+                                toolbar: {show: true, list: ["CLEAR"]},
+                                data: res.data,
+                                value: "admin",
+                                model: {"icon": "hidden", "label": {"type": "text"}},
+                                clickClose: true,
+                                radio: true,
+                                tree: {
+                                    show: true,
+		                                strict: false,
+		                                clickCheck: true,
+		                                clickExpand: false,
+                                    expandedKeys: initValue
+                                },
+                            });
+                            if (res.code !== layui.responseCode.SUCCESS) {
+                                return layui.popup.failure(res.message);
+                            }
+                        }
+                    });
+                });
+
+                // ajax产生错误
+                if (res.code !== layui.responseCode.SUCCESS) {
+                    layui.popup.failure(res.message);
+                }
+
+            }
+        });
+    });
+
+    // 提交事件
+    layui.use(["form", "popup", "responseCode"], function () {
+        layui.form.on("submit(save)", function (data) {
+            data.field[PRIMARY_KEY] = layui.url().search[PRIMARY_KEY];
+            layui.$.ajax({
+                url: EDIT_API,
+                type: "POST",
+                dateType: "json",
+                data: data.field,
+                success: function (res) {
+                    if (res.code !== layui.responseCode.SUCCESS) {
+                        return layui.popup.failure(res.message);
+                    }
+                    return layui.popup.success("操作成功", function () {
+                        parent.refreshTable();
+                        parent.layer.close(parent.layer.getFrameIndex(window.name));
+                    });
+                }
+            });
+            return false;
+        });
+    });
+
+</script>
+
+</body>
+
+</html>

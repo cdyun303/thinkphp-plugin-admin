@@ -1,6 +1,6 @@
 <?php
 /**
- * InstallController.php
+ * 安装助手
  * @author cdyun(121625706@qq.com)
  * @date 2026/3/14 23:38
  */
@@ -9,10 +9,10 @@ declare (strict_types=1);
 
 namespace app\admin\controller\core;
 
+use app\admin\common\Node;
 use app\admin\controller\AdminBaseController;
 use app\admin\validate\AdminUserValidate;
 use Cdyun\PhpTool\Crypto;
-use Cdyun\PhpTool\Dir;
 use think\facade\Session;
 
 class InstallController extends AdminBaseController
@@ -20,6 +20,7 @@ class InstallController extends AdminBaseController
     /**
      * 设置数据库
      * @return void
+     * @throws \ReflectionException
      * @author cdyun(121625706@qq.com)
      */
     public function step1()
@@ -65,6 +66,7 @@ class InstallController extends AdminBaseController
             $prefix . 'admin_role',
             $prefix . 'admin_user_role',
             $prefix . 'admin_node',
+            $prefix . 'admin_log',
             $prefix . 'option',
             $prefix . 'user',
             $prefix . 'upload',
@@ -99,12 +101,6 @@ class InstallController extends AdminBaseController
                 $db->exec($sql);
             }
         }
-        // 导入菜单
-        $menus = Dir::getFileContent(base_path('admin'), 'node');
-
-        // 安装过程中没有数据库配置，无法使用api\Menu::import()方法
-        $this->importMenu($prefix . 'admin_node', $menus, $db);
-
         $config_content = <<<EOF
 <?php
 // 数据库配置
@@ -188,6 +184,9 @@ EOF;
         // 写入安装记录标记
         file_put_contents($isInstall, '管理后台已经安装！如需重新安装，请删除该文件再试！');
 
+
+        // 导入菜单
+        Node::import('admin');
         success();
     }
 

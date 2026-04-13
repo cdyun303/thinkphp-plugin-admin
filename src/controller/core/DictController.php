@@ -1,6 +1,6 @@
 <?php
 /**
- * DictController.php
+ * 字典管理
  * @author cdyun(121625706@qq.com)
  * @date 2026/3/22 17:46
  */
@@ -9,10 +9,14 @@ declare (strict_types=1);
 
 namespace app\admin\controller\core;
 
-
+use app\admin\common\annotation\NodeGroup;
+use app\admin\common\annotation\NodeItem;
+use app\admin\common\Type;
 use app\admin\controller\AdminBaseController;
 use app\admin\entity\Option;
 
+#[NodeGroup(Type::NodeGroup['common'])]
+#[NodeItem(['title' => '数据字典', 'href' => '/admin/core/dict/index', 'weight' => 500])]
 class DictController extends AdminBaseController
 {
 
@@ -23,7 +27,7 @@ class DictController extends AdminBaseController
      */
     public function index(): string
     {
-        return $this->fetch('dict/index');
+        return $this->fetch();
     }
 
     /**
@@ -32,6 +36,7 @@ class DictController extends AdminBaseController
      * @throws \Exception
      * @author cdyun(121625706@qq.com)
      */
+    #[NodeItem]
     public function list(): void
     {
         $name = $this->request->get('name', '');
@@ -74,6 +79,7 @@ class DictController extends AdminBaseController
      * @throws \Exception
      * @author cdyun(121625706@qq.com)
      */
+    #[NodeItem]
     public function create(): string
     {
         if ($this->request->isAjax()) {
@@ -89,7 +95,7 @@ class DictController extends AdminBaseController
             $entity->doSaveDict($name, $values);
             success();
         }
-        return $this->fetch('dict/create');
+        return $this->fetch();
     }
 
     /**
@@ -98,6 +104,7 @@ class DictController extends AdminBaseController
      * @throws \Exception
      * @author cdyun(121625706@qq.com)
      */
+    #[NodeItem]
     public function edit(): string
     {
         if ($this->request->isAjax()) {
@@ -113,7 +120,7 @@ class DictController extends AdminBaseController
             $entity->doSaveDict($name, $values);
             success();
         }
-        return $this->fetch('dict/edit');
+        return $this->fetch();
     }
 
     /**
@@ -121,6 +128,7 @@ class DictController extends AdminBaseController
      * @return void
      * @author cdyun(121625706@qq.com)
      */
+    #[NodeItem]
     public function delete(): void
     {
         $names = $this->request->post('name', []);

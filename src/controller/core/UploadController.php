@@ -1,6 +1,6 @@
 <?php
 /**
- * UploadController.php
+ * 附件上传
  * @author cdyun(121625706@qq.com)
  * @date 2026/3/23 02:24
  */
@@ -9,11 +9,22 @@ declare (strict_types=1);
 
 namespace app\admin\controller\core;
 
+use app\admin\common\annotation\NodeGroup;
+use app\admin\common\annotation\NodeItem;
+use app\admin\common\Type;
 use app\admin\controller\AdminBaseController;
 use app\admin\entity\Upload;
 
+#[NodeGroup(Type::NodeGroup['common'])]
+#[NodeItem(['title' => '附件管理', 'href' => '/admin/core/upload/index', 'weight' => 800])]
 class UploadController extends AdminBaseController
 {
+    /**
+     * 只返回当前管理员数据
+     * @var string
+     */
+    protected string $dataLimit = 'personal';
+
     /**
      * 浏览
      * @return string
@@ -21,7 +32,7 @@ class UploadController extends AdminBaseController
      */
     public function index(): string
     {
-        return $this->fetch('upload/index');
+        return $this->fetch();
     }
 
     /**
@@ -29,9 +40,10 @@ class UploadController extends AdminBaseController
      * @return string
      * @author cdyun(121625706@qq.com)
      */
+    #[NodeItem]
     public function attachment(): string
     {
-        return $this->fetch('upload/attachment');
+        return $this->fetch();
     }
 
     /**
@@ -40,10 +52,12 @@ class UploadController extends AdminBaseController
      * @throws \Exception
      * @author cdyun(121625706@qq.com)
      */
+    #[NodeItem]
     public function list(): void
     {
         $entity = new Upload();
         [$where, $format, $limit, $field, $order] = $entity->doSearchSelect($this->request);
+        $this->queryWhereLimit($where);
         if (!empty($where['ext']) && is_string($where['ext'])) {
             $where['ext'] = ['in', explode(',', $where['ext'])];
         }
@@ -70,10 +84,11 @@ class UploadController extends AdminBaseController
      * @return string|void
      * @author cdyun(121625706@qq.com)
      */
+    #[NodeItem]
     public function create()
     {
         if ($this->request->isGet()) {
-            return $this->fetch('upload/create');
+            return $this->fetch();
         }
         $params = input('param.');
         $params['file'] = $this->request->file('file');
@@ -87,6 +102,7 @@ class UploadController extends AdminBaseController
      * @return void
      * @author cdyun(121625706@qq.com)
      */
+    #[NodeItem]
     public function move_upload(): void
     {
         $params = input('param.');
@@ -101,6 +117,7 @@ class UploadController extends AdminBaseController
      * @return void
      * @author cdyun(121625706@qq.com)
      */
+    #[NodeItem]
     public function delete(): void
     {
         $ids = $this->request->post('id', []);

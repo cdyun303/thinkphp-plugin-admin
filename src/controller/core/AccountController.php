@@ -1,6 +1,6 @@
 <?php
 /**
- * AccountController.php
+ * Admin应用用户操作
  * @author cdyun(121625706@qq.com)
  * @date 2026/3/14 22:00
  */
@@ -9,15 +9,17 @@ declare (strict_types=1);
 
 namespace app\admin\controller\core;
 
+use app\admin\common\annotation\NodeGroup;
+use app\admin\common\Type;
 use app\admin\controller\AdminBaseController;
 use app\admin\entity\AdminRole;
 use app\admin\entity\AdminUser;
 use app\admin\validate\AdminUserValidate;
 use Cdyun\PhpTool\Crypto;
 
+#[NodeGroup(Type::NodeGroup['common'])]
 class AccountController extends AdminBaseController
 {
-
     /**
      * 登录操作
      * @return void
@@ -84,7 +86,7 @@ class AccountController extends AdminBaseController
      */
     public function index(): string
     {
-        return $this->fetch('account/index');
+        return $this->fetch();
     }
 
     /**

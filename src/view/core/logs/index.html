@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+		<meta charset="utf-8">
+		<title>行为日志</title>
+		<link rel="stylesheet" href="__LIB__/pear/css/pear.css"/>
+		<link rel="stylesheet" href="__ADMIN__/css/reset.css"/>
+</head>
+<body class="pear-container">
+
+<!-- 顶部查询表单 -->
+<div class="layui-card">
+		<div class="layui-card-body">
+				<form class="layui-form top-search-from">
+
+						<div class="layui-form-item">
+								<label class="layui-form-label">标题</label>
+								<div class="layui-input-block">
+										<input type="text" name="title" value="" class="layui-input">
+								</div>
+						</div>
+
+						<div class="layui-form-item">
+								<label class="layui-form-label">创建时间</label>
+								<div class="layui-input-block">
+										<div class="layui-input-block" id="create_at">
+												<input type="text" autocomplete="off" name="create_at[]" id="create_at-date-start"
+												       class="layui-input inline-block" placeholder="开始时间">
+												-
+												<input type="text" autocomplete="off" name="create_at[]" id="create_at-date-end"
+												       class="layui-input inline-block" placeholder="结束时间">
+										</div>
+								</div>
+						</div>
+
+						<div class="layui-form-item layui-inline">
+								<label class="layui-form-label"></label>
+								<button class="pear-btn pear-btn-md pear-btn-primary" lay-submit lay-filter="table-query">
+										<i class="layui-icon layui-icon-search"></i>查询
+								</button>
+								<button type="reset" class="pear-btn pear-btn-md" lay-submit lay-filter="table-reset">
+										<i class="layui-icon layui-icon-refresh"></i>重置
+								</button>
+						</div>
+						<div class="toggle-btn">
+								<a class="layui-hide">展开<i class="layui-icon layui-icon-down"></i></a>
+								<a class="layui-hide">收起<i class="layui-icon layui-icon-up"></i></a>
+						</div>
+				</form>
+		</div>
+</div>
+
+<!-- 数据表格 -->
+<div class="layui-card">
+		<div class="layui-card-body">
+				<table id="data-table" lay-filter="data-table"></table>
+		</div>
+</div>
+
+<!-- 表格顶部工具栏 -->
+<script type="text/html" id="table-toolbar">
+		<button class="pear-btn pear-btn-danger pear-btn-md" lay-event="batchRemove" permission="admin.core.logs.delete">
+				<i class="layui-icon layui-icon-delete"></i>删除
+		</button>
+</script>
+
+<!-- 表格行工具栏 -->
+<script type="text/html" id="table-bar">
+		<button class="pear-btn pear-btn-xs tool-btn" lay-event="detail" permission="admin.core.logs.detail">详情</button>
+		<button class="pear-btn pear-btn-xs tool-btn" lay-event="remove" permission="admin.core.logs.delete">删除</button>
+</script>
+
+<script src="__LIB__/layui/layui.js?v=2.8.12"></script>
+<script src="__LIB__/pear/pear.js"></script>
+<script src="__ADMIN__/js/permission.js"></script>
+<script src="__ADMIN__/js/common.js"></script>
+<script>
+
+    // 相关常量
+    const PRIMARY_KEY = "id";
+    const LIST_API = "/admin/core/logs/list";
+    const DELETE_API = "/admin/core/logs/delete";
+    const DETAIL_API = "/admin/core/logs/detail";
+
+    // 字段 创建时间 create_at
+    layui.use(["laydate"], function () {
+        layui.laydate.render({
+            elem: "#create_at",
+            range: ["#create_at-date-start", "#create_at-date-end"],
+        });
+    })
+
+    // 表格渲染
+    layui.use(["table", "form", "common", "popup", "responseCode"], function () {
+        let table = layui.table;
+        let form = layui.form;
+        let $ = layui.$;
+        let common = layui.common;
+
+        // 表头参数
+        let cols = [
+            {type: "checkbox"}
+            ,{title: "ID", field: "id", width: 100}
+            , {field: 'title', title: '执行操作', width: 220}
+            , {field: 'url', title: 'URL', width: 260}
+            , {field: 'content', title: '响应内容'}
+            , {field: 'update_at', title: '操作时间', align: 'center', width: 180}
+            ,{title: "操作", toolbar: "#table-bar", align: "center", fixed: "right", width: 130,}
+        ];
+
+        // 渲染表格
+        function render() {
+            table.render({
+                elem: "#data-table",
+                url: LIST_API,
+                page: true,
+                cols: [cols],
+                skin: "line",
+                size: "lg",
+                toolbar: "#table-toolbar",
+                autoSort: false,
+                defaultToolbar: [{
+                    title: "刷新",
+                    layEvent: "refresh",
+                    icon: "layui-icon-refresh",
+                }, "filter", "print", "exports"],
+                done: function () {
+                    layer.photos({photos: 'div[lay-id="data-table"]', anim: 5});
+                }
+            });
+        }
+
+        // 获取表格中下拉或树形组件数据
+        let apis = [];
+
+        let apiResults = {};
+
+        let count = apis.length;
+        let hasError = false;
+
+        // 提取递归函数到外部，避免重复定义
+        function travelData(items, targetArray) {
+            for (let k in items) {
+                let node = items[k]; // 改名避免混淆
+                if (node.value !== undefined && node.name !== undefined) {
+                    targetArray[node.value] = node.name;
+                }
+                if (node.children && node.children.length > 0) {
+                    travelData(node.children, targetArray);
+                }
+            }
+        }
+
+        if (count === 0) {
+            render();
+        } else {
+            layui.each(apis, function (k, item) {
+                let [field, url] = item;
+                $.ajax({
+                    url: url,
+                    dataType: "json",
+                    success: function (res) {
+                        if (res.code !== layui.responseCode.SUCCESS) {
+                            hasError = true; // 标记错误
+                            layui.popup.failure(res.message || "加载" + field + "失败");
+                            return;
+                        }
+                        // 确保目标数组已初始化
+                        if (!apiResults[field]) {
+                            apiResults[field] = {};
+                        }
+                        travelData(res.data, apiResults[field]);
+                    },
+                    error: function () {
+                        hasError = true;
+                        layui.popup.failure("网络请求异常：" + field);
+                    },
+                    complete: function () {
+                        if (--count === 0) {
+                            if (!hasError) {
+                                render();
+                            } else {
+                                console.warn("部分接口加载失败，已停止渲染。");
+                            }
+                        }
+                    }
+                });
+            });
+        }
+
+        // 详情或删除行事件
+        table.on("tool(data-table)", function (obj) {
+            if (obj.event === "remove") {
+                remove(obj);
+            } else if (obj.event === "detail") {
+                detail(obj);
+            }
+        });
+        // 详情
+        let detail = function (obj) {
+            let value = obj.data[PRIMARY_KEY];
+            layer.open({
+                type: 2,
+                title: "详情",
+                shade: 0.1,
+                area: [common.isModile() ? "100%" : "800px", common.isModile() ? "100%" : "600px"],
+                content: DETAIL_API + "?" + PRIMARY_KEY + "=" + value
+            });
+        }
+
+        // 表格顶部工具栏事件
+        table.on("toolbar(data-table)", function (obj) {
+            if (obj.event === "add") {
+                add();
+            } else if (obj.event === "refresh") {
+                refreshTable();
+            } else if (obj.event === "batchRemove") {
+                batchRemove(obj);
+            }
+        });
+
+        // 表格顶部搜索事件
+        form.on("submit(table-query)", function (data) {
+            table.reload("data-table", {
+                page: {
+                    curr: 1
+                },
+                where: data.field
+            })
+            return false;
+        });
+
+        // 表格顶部搜索重置事件
+        form.on("submit(table-reset)", function (data) {
+            table.reload("data-table", {
+                where: []
+            })
+        });
+
+        // 表格排序事件
+        table.on("sort(data-table)", function (obj) {
+            table.reload("data-table", {
+                initSort: obj,
+                scrollPos: "fixed",
+                where: {
+                    field: obj.field,
+                    order: obj.type
+                }
+            });
+        });
+
+        // 删除一行
+        let remove = function (obj) {
+            return doRemove(obj.data[PRIMARY_KEY]);
+        }
+
+        // 删除多行
+        let batchRemove = function (obj) {
+            let checkIds = common.checkField(obj, PRIMARY_KEY);
+            if (checkIds === "") {
+                layui.popup.warning("未选中数据");
+                return false;
+            }
+            doRemove(checkIds.split(","));
+        }
+
+        // 执行删除
+        let doRemove = function (ids) {
+            let data = {};
+            data[PRIMARY_KEY] = ids;
+            layer.confirm("确定删除?", {
+                icon: 3,
+                title: "提示"
+            }, function (index) {
+                layer.close(index);
+                let loading = layer.load();
+                $.ajax({
+                    url: DELETE_API,
+                    data: data,
+                    dataType: "json",
+                    type: "post",
+                    success: function (res) {
+                        layer.close(loading);
+                        if (res.code !== layui.responseCode.SUCCESS) {
+                            return layui.popup.failure(res.message);
+                        }
+                        return layui.popup.success("操作成功", refreshTable);
+                    }
+                })
+            });
+        }
+
+        // 刷新表格数据
+        window.refreshTable = function () {
+            table.reloadData("data-table", {
+                scrollPos: "fixed",
+                done: function (res, curr) {
+                    if (curr > 1 && res.data && !res.data.length) {
+                        curr = curr - 1;
+                        table.reloadData("data-table", {
+                            page: {
+                                curr: curr
+                            },
+                        })
+                    }
+                }
+            });
+        }
+    })
+
+</script>
+</body>
+</html>

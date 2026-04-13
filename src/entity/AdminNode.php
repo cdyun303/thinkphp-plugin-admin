@@ -15,11 +15,11 @@ class AdminNode extends BaseEntity
 {
     /**
      * 移除空数组
-     * @param $menus
+     * @param array $menus
      * @return array
      * @author cdyun(121625706@qq.com)
      */
-    public function empty_filter($menus): array
+    public function empty_filter(array $menus): array
     {
         return array_map(
             function ($menu) {
@@ -36,15 +36,15 @@ class AdminNode extends BaseEntity
             ))
         );
     }
+
     /**
      * 移除不包含某些数据的数组
-     * @param $array - 数组
-     * @param $key - 键
-     * @param $values - 值
-     * @return void
+     * @param array $array - 数组
+     * @param string $key - 键
+     * @param array $values - 值
      * @author cdyun(121625706@qq.com)
      */
-    public function removeNotContain(&$array, $key, $values): void
+    public function removeNotContain(array &$array, string $key, array $values): void
     {
         foreach ($array as $k => &$item) {
             if (!is_array($item)) {
@@ -64,12 +64,12 @@ class AdminNode extends BaseEntity
     /**
      * 判断数组是否包含某些数据
      * @param $array - 数组
-     * @param $key - 键
-     * @param $values - 值
+     * @param string $key - 键
+     * @param array $values - 值
      * @return bool
      * @author cdyun(121625706@qq.com)
      */
-    protected function arrayContain(&$array, $key, $values): bool
+    protected function arrayContain(&$array, string $key, array $values): bool
     {
         if (!is_array($array)) {
             return false;
@@ -77,7 +77,7 @@ class AdminNode extends BaseEntity
         if (isset($array[$key]) && in_array($array[$key], $values)) {
             return true;
         }
-        if (!isset($array['children'])) {
+        if (empty($array['children'])) {
             return false;
         }
         foreach ($array['children'] as $item) {
@@ -88,4 +88,40 @@ class AdminNode extends BaseEntity
         return false;
     }
 
+    /**
+     * 将节点Key转换成权限码
+     * @param string $key
+     * @return false|string
+     * @author cdyun(121625706@qq.com)
+     */
+    public function getNodePermission(string $key): bool|string
+    {
+        $key = strtolower($key);
+        $action = '';
+        if (strpos($key, '@')) {
+            [$key, $action] = explode('@', $key, 2);
+        }
+        $appDirName = 'app';
+        if (!str_starts_with($key, $appDirName . '\\')) {
+            return false;
+        }
+        if (str_ends_with($key, 'controller')) {
+            $key = substr($key, 0, -strlen('controller'));
+        }
+        $paths = explode('\\', $key);
+        if (count($paths) < 2) {
+            return false;
+        }
+        $controllerLayer = config('route.controller_layer', 'controller');
+        foreach ($paths as $index => $path) {
+            if ($path === $controllerLayer) {
+                unset($paths[$index]);
+            }
+            if ($path === $appDirName) {
+                unset($paths[$index]);
+            }
+        }
+        $code = implode('/', $paths);
+        return $action ? "$code/$action" : $code;
+    }
 }

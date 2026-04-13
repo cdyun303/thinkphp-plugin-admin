@@ -9,9 +9,11 @@ declare (strict_types=1);
 
 namespace app\admin\entity;
 
-use app\admin\exception\AdminException;
+use app\admin\common\exception\AdminException;
+use app\admin\model\AdminUserRole;
 use Cdyun\PhpTool\Crypto;
 use support\base\BaseEntity;
+use think\facade\Db;
 
 class AdminUser extends BaseEntity
 {
@@ -48,18 +50,9 @@ class AdminUser extends BaseEntity
         // 设置Session，登陆时不设置session_time或设置为0，否则会导致获取不到角色Ids
         $user->password = md5($user->password);
         $this->setAdminSession($user->toArray());
-        return true;
-    }
 
-    /**
-     * 获取角色ID
-     * @param $uid
-     * @return array
-     * @author cdyun(121625706@qq.com)
-     */
-    public function getRoleIds($uid): array
-    {
-        return (new \Thinkphp\Admin\model\AdminUserRole)->where('admin_id', $uid)->column('role_id');
+        event('AdminLogin', $user);
+        return true;
     }
 
     /**
@@ -135,6 +128,74 @@ class AdminUser extends BaseEntity
     }
 
     /**
+     * 保存用户
+     * @param array $data
+     * @return void
+     * @author cdyun(121625706@qq.com)
+     */
+    public function doSaveAdminUser(array $data): void
+    {
+        // 启动事务
+        Db::startTrans();
+        try {
+            if (!is_array($data['roles'])) {
+                throw new AdminException('用户角色格式错误');
+            }
+
+            $aurDao = new AdminUserRole();
+            $roleEntity = new AdminRole();
+            $scopeRoleIds = $roleEntity->getScopeRoleIds();
+
+            $isSuperAdmin = $this->isSuperAdmin();
+            if (isset($data['id'])) {
+                $roleIds = $this->getRoleIds(admin('id'));
+                if (!$isSuperAdmin && !array_intersect($roleIds, $scopeRoleIds)) {
+                    throw new AdminException('无权限更改该记录');
+                }
+                if (!$isSuperAdmin && array_diff($data['roles'], $scopeRoleIds)) {
+                    throw new AdminException('角色超出权限范围');
+                }
+
+                // 密码处理
+                if (isset($data['password']) && $data['password'] !== '') {
+                    $data['password'] = Crypto::passwordHash($data['password']);
+                } else {
+                    unset($data['password']); // 如果密码为空则不更新密码字段
+                }
+                $this->update($data, ['id' => $data['id']]);
+
+                $deleteIds = array_diff($roleIds, $data['roles']);
+                $rs = $aurDao->whereIn('role_id', $deleteIds)->where('admin_id', $data['id'])->delete();
+                if ($rs === false) {
+                    throw new AdminException('用户保存角色失败');
+                }
+                $uerId = $data['id'];
+            } else {
+                if ($this->where('username', $data['username'])->find()) {
+                    throw new AdminException('用户名已存在');
+                }
+                if (!$isSuperAdmin && array_diff($data['roles'], $scopeRoleIds)) {
+                    throw new AdminException('角色超出权限范围');
+                }
+
+                $data['password'] = Crypto::passwordHash($data['password']);
+                $rs = $this->create($data);
+                $uerId = $rs->id;
+            }
+
+            $aurDao->saveAll(array_map(function ($roleId) use ($uerId) {
+                return ['admin_id' => $uerId, 'role_id' => $roleId];
+            }, $data['roles']));
+            // 提交事务
+            Db::commit();
+        } catch (\Exception $e) {
+            // 回滚事务
+            Db::rollback();
+            throw new AdminException($e->getMessage());
+        }
+    }
+
+    /**
      * 是否是超级管理员
      * @param int $adminId - 管理员ID
      * @return bool
@@ -153,4 +214,61 @@ class AdminUser extends BaseEntity
         $rules = $dao->whereIn('id', $roles)->column('rules');
         return $rules && in_array('*', $rules);
     }
+
+    /**
+     * 获取角色ID
+     * @param $uid
+     * @return array
+     * @author cdyun(121625706@qq.com)
+     */
+    public function getRoleIds($uid): array
+    {
+        return (new AdminUserRole)->where('admin_id', $uid)->column('role_id');
+    }
+
+    /**
+     * 删除用户
+     * @param $ids
+     * @return true
+     * @author cdyun(121625706@qq.com)
+     */
+    public function doDeleteAdminUser($ids): bool
+    {
+        // 启动事务
+        Db::startTrans();
+        try {
+            if (in_array(admin('id'), $ids)) {
+                throw new AdminException('不能删除自己');
+            }
+
+            $aurDao = new AdminUserRole();
+            $roleEntity = new AdminRole();
+            $scopeAdminIds = $roleEntity->getScopeAdminIds();
+
+            $isSuperAdmin = $this->isSuperAdmin();
+
+            if (!$isSuperAdmin && array_diff($ids, $scopeAdminIds)) {
+                throw new AdminException('无数据权限');
+            }
+
+            $this->destroy(
+                function ($query) use ($ids) {
+                    $query->whereIn('id', $ids);
+                }
+            );
+            $aurDao->destroy(
+                function ($query) use ($ids) {
+                    $query->whereIn('admin_id', $ids);
+                }
+            );
+            // 提交事务
+            Db::commit();
+        } catch (\Exception $e) {
+            // 回滚事务
+            Db::rollback();
+            throw new AdminException($e->getMessage());
+        }
+        return true;
+    }
+
 }

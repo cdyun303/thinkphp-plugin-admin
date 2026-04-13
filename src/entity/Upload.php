@@ -10,7 +10,7 @@ declare (strict_types=1);
 namespace app\admin\entity;
 
 
-use app\admin\exception\AdminException;
+use app\admin\common\exception\AdminException;
 use Cdyun\ThinkphpUpload\UploadEnforcer;
 use support\base\BaseEntity;
 

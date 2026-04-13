@@ -1,6 +1,6 @@
 <?php
 /**
- * ConfigController.php
+ * 平台设置
  * @author cdyun(121625706@qq.com)
  * @date 2026/3/14 22:02
  */
@@ -9,11 +9,16 @@ declare (strict_types=1);
 
 namespace app\admin\controller\core;
 
+use app\admin\common\annotation\NodeGroup;
+use app\admin\common\annotation\NodeItem;
+use app\admin\common\exception\AdminException;
+use app\admin\common\Type;
 use app\admin\controller\AdminBaseController;
 use app\admin\entity\Option;
-use app\admin\exception\AdminException;
 use app\admin\validate\ConfigValidate;
 
+#[NodeGroup(Type::NodeGroup['common'])]
+#[NodeItem(['title' => '平台设置', 'href' => '/admin/core/config/index', 'weight' => 1000])]
 class ConfigController extends AdminBaseController
 {
     protected string $systemConfig = 'config_system';
@@ -25,7 +30,7 @@ class ConfigController extends AdminBaseController
      */
     public function index(): string
     {
-        return $this->fetch('config/index');
+        return $this->fetch();
     }
 
     /**
@@ -37,7 +42,7 @@ class ConfigController extends AdminBaseController
     {
         $entity = new Option();
         $config = $entity->getOptionConfig($this->systemConfig);
-        if (!empty($config['logo']['image'])){
+        if (!empty($config['logo']['image'])) {
             $config['logo']['image'] = app_domain_url($config['logo']['image'], true);
         }
         return $config;
@@ -49,6 +54,7 @@ class ConfigController extends AdminBaseController
      * @return void
      * @author cdyun(121625706@qq.com)
      */
+    #[NodeItem]
     public function edit(): void
     {
         $params = $this->request->post();

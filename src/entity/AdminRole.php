@@ -9,29 +9,27 @@ declare (strict_types=1);
 
 namespace app\admin\entity;
 
-use app\admin\exception\AdminException;
+use app\admin\common\exception\AdminException;
+use app\admin\model\AdminUserRole;
 use Cdyun\PhpTool\Arr;
 use support\base\BaseEntity;
 
 class AdminRole extends BaseEntity
 {
     /**
-     * 获取角色全部权限
-     * @param $roleIds
+     * 获取权限范围内的所有管理员id
+     * @param bool $with_self - 是否包含自身
      * @return array
      * @author cdyun(121625706@qq.com)
      */
-    public function getRoleRules($roleIds): array
+    public function getScopeAdminIds(bool $with_self = false): array
     {
-        $rules = $roleIds ? $this->whereIn('id', $roleIds)->column('rules') : [];
-        $result = [];
-        foreach ($rules as $item) {
-            if (!$item) {
-                continue;
-            }
-            $result = array_merge($rules, explode(',', $item));
+        $roleIds = $this->getScopeRoleIds();
+        $adminIds = (new AdminUserRole)->whereIn('role_id', $roleIds)->column('admin_id');
+        if ($with_self) {
+            $adminIds[] = admin('id');
         }
-        return $result;
+        return array_unique($adminIds);
     }
 
     /**
@@ -54,7 +52,7 @@ class AdminRole extends BaseEntity
             }
 
             // 非超级管理员
-            $roles = $this->field('id,pid,name,title,status')->select()->toArray();
+            $roles = $this->field('id,pid,name,title')->select()->toArray();
             $result = $with_self ? $roleIds : []; // 是否包含自身
             foreach ($roleIds as $item) {
                 $itemTree = Arr::toTree($roles, $item, 'id', 'pid'); // 获取指定根节点的树形结构
@@ -67,5 +65,84 @@ class AdminRole extends BaseEntity
         } catch (\Exception $e) {
             throw new AdminException($e->getMessage());
         }
+    }
+
+    /**
+     * 检查权限字典是否合法
+     * @param int $roleId - 角色id
+     * @param string $ruleIds - 权限id
+     * @return void
+     * @author cdyun(121625706@qq.com)
+     */
+    public function checkRules(int $roleId, string $ruleIds): void
+    {
+        if ($ruleIds) {
+            $ruleIds = explode(',', $ruleIds);
+            if (in_array('*', $ruleIds)) {
+                throw new AdminException('非法数据');
+            }
+            $nodeEntity = new AdminNode();
+            $rule_exists = $nodeEntity->whereIn('id', $ruleIds)->column('id');
+            if (count($rule_exists) != count($ruleIds)) {
+                throw new AdminException('权限不存在');
+            }
+            $roleEntity = new AdminRole();
+            $rule_id_string = $roleEntity->where('id', $roleId)->value('rules');
+            if ($rule_id_string === '') {
+                throw new AdminException('数据超出权限范围');
+            }
+            if ($rule_id_string === '*') {
+                return;
+            }
+            $legal_rule_ids = explode(',', $rule_id_string);
+            if (array_diff($ruleIds, $legal_rule_ids)) {
+                throw new AdminException('数据超出权限范围');
+            }
+        }
+    }
+
+    /**
+     * 获取角色的权限码
+     * @param $roles
+     * @return array
+     * @author cdyun(121625706@qq.com)
+     */
+    public function getRolePermission($roles): array
+    {
+        $rules = $this->getRoleRules($roles);
+        // 超级管理员
+        if (in_array('*', $rules)) {
+            return ['*'];
+        }
+        $nodeEntity = new AdminNode();
+        $keys = $nodeEntity->whereIn('id', $rules)->column('key');
+        $permissions = [];
+        foreach ($keys as $key) {
+            if (!$key = $nodeEntity->getNodePermission($key)) {
+                continue;
+            }
+            $code = str_replace('/', '.', trim($key, '/'));
+            $permissions[] = $code;
+        }
+        return $permissions;
+    }
+
+    /**
+     * 获取角色全部权限
+     * @param $roleIds
+     * @return array
+     * @author cdyun(121625706@qq.com)
+     */
+    public function getRoleRules($roleIds): array
+    {
+        $rules = $roleIds ? $this->whereIn('id', $roleIds)->column('rules') : [];
+        $result = [];
+        foreach ($rules as $item) {
+            if (!$item) {
+                continue;
+            }
+            $result = array_merge($result, explode(',', $item));
+        }
+        return $result;
     }
 }
