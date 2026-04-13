@@ -28,6 +28,22 @@ composer require cdyun/thinkphp-plugin-admin
 tp8/                                      部署目录
 ├── app                                   多应用目录
 │   ├── admin                             Thinkphp Admin 中台应用插件
+│   │   ├── common                        Admin应用提供的服务接口类：注解类、异常处理类、事件监听器、中间件等
+│   │   ├── config                        Admin应用配置目录
+│   │   ├── controller                    控制器目录
+│   │   │   ├── core                      Core模块
+│   │   │   ├── ...                       其他模块
+│   │   │   └── AdminBaseController.php   Admin应用基础控制器
+│   │   ├── entity                        对应实体模型目录
+│   │   ├── model                         模型目录
+│   │   ├── route                         路由目录
+│   │   │   └── admin.php                 路由（注意配置多模块路由）
+│   │   ├── validate                      验证器目录
+│   │   ├── view                          视图目录
+│   │   ├── common.php                    Admin应用公共函数文件
+│   │   ├── event.php                     Admin应用事件配置
+│   │   ├── install.sql                   Admin应用数据库安装SQL
+│   │   ├── middleware                    Admin应用中间件配置
 │   │   └── ...                           其他目录或文件
 │   │
 │   ├── common.php                        全局公共函数文件
@@ -91,6 +107,11 @@ tp8/                                      部署目录
 ├── composer.json                         项目依赖配置文件
 └── think.php                             命令行入口文件
 ```
+## 使用注意
+
+- ✅ Admin 中台应用插件支持多模块和多应用。
+- ✅ 使用多应用时，需要配置对应的应用路由和应用 session 功能。
+- ✅ 在Admin应用中提供了服务接口类：注解类、异常处理类、事件监听器、中间件等，用于应用节点加载、登录状态检测、权限验证、日志记录
 
 ## 许可证
 
