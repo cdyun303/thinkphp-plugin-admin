@@ -61,6 +61,8 @@ class SmsController extends AdminBaseController
             error('默认短信服务不存在');
         }
         $entity = new Option();
+        // 验证字段是否合法
+        $entity->verifyOptionField($sms);
         $entity->where('name', $this->smsConfig)->update([
             'value' => json_encode($sms)
         ]);

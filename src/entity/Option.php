@@ -185,4 +185,23 @@ class Option extends BaseEntity
         ]);
         return json_decode($config, true);
     }
+
+    /**
+     * 验证字段是否合法
+     * @param array $data
+     * @return true
+     * @author cdyun(121625706@qq.com)
+     */
+    public function verifyOptionField(array $data): bool
+    {
+        foreach ($data as $key => $item) {
+            if (!preg_match('/^[a-zA-Z_0-9]+$/', (string)$key)) {
+                throw new AdminException("字段名只能包含字母、数字和下划线，{$key}不符合格式");
+            }
+            if (is_array($item)){
+                $this->verifyOptionField($item);
+            }
+        }
+        return true;
+    }
 }

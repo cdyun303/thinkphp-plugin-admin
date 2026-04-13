@@ -61,6 +61,8 @@ class MailController extends AdminBaseController
             error('默认邮件服务不存在');
         }
         $entity = new Option();
+        // 验证字段是否合法
+        $entity->verifyOptionField($mail);
         $entity->where('name', $this->mailConfig)->update([
             'value' => json_encode($mail)
         ]);
